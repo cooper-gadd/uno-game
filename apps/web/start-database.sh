@@ -9,7 +9,7 @@
 
 # On Linux and macOS you can run this script directly - `./start-database.sh`
 
-DB_CONTAINER_NAME="web-postgres"
+DB_CONTAINER_NAME="uno-postgres"
 
 if ! [ -x "$(command -v docker)" ]; then
   echo -e "Docker is not installed. Please install docker and try again.\nDocker install guide: https://docs.docker.com/engine/install/"
