@@ -7,35 +7,44 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { db } from "@/server/db";
+import { unstable_cache as cache } from "next/cache";
 import { Join } from "./join";
 
-export async function Games() {
-  const games = await db.query.games.findMany({
-    columns: {
-      id: true,
-      name: true,
-      createdAt: true,
-      maxPlayers: true,
-    },
-    with: {
-      users: {
-        columns: {
-          name: true,
-        },
+const getGames = cache(
+  async () => {
+    return await db.query.games.findMany({
+      columns: {
+        id: true,
+        name: true,
+        createdAt: true,
+        maxPlayers: true,
       },
-      players: {
-        columns: {},
-        with: {
-          user: {
-            columns: {
-              name: true,
+      with: {
+        users: {
+          columns: {
+            name: true,
+          },
+        },
+        players: {
+          columns: {},
+          with: {
+            user: {
+              columns: {
+                name: true,
+              },
             },
           },
         },
       },
-    },
-    where: (games, { eq }) => eq(games.status, "waiting"),
-  });
+      where: (games, { eq }) => eq(games.status, "waiting"),
+    });
+  },
+  ["games"],
+  { revalidate: 60, tags: ["games"] },
+);
+
+export async function Games() {
+  const games = await getGames();
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -50,7 +59,7 @@ export async function Games() {
           <CardContent>
             <div className="text-2xl font-bold">{game.name}</div>
             <p className="text-xs text-muted-foreground">
-              {game.createdAt.toLocaleTimeString("en-US", {
+              {new Date(game.createdAt).toLocaleTimeString("en-US", {
                 hour: "numeric",
                 minute: "numeric",
               })}
