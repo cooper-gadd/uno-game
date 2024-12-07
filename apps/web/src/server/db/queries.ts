@@ -1,5 +1,6 @@
 "use server";
 
+import { env } from "@/env";
 import {
   chatSchema,
   gameSchema,
@@ -23,8 +24,6 @@ import { eq } from "drizzle-orm";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { v4 as uuid } from "uuid";
-
-const SALT_ROUNDS = 10;
 
 export async function login({
   username,
@@ -95,7 +94,10 @@ export async function register({
     throw new Error("Invalid nonce");
   }
 
-  const hashedPassword = await bcrypt.hash(createUser.password, SALT_ROUNDS);
+  const hashedPassword = await bcrypt.hash(
+    createUser.password,
+    Number(env.SALT_ROUNDS),
+  );
 
   const [user] = await db
     .insert(users)
