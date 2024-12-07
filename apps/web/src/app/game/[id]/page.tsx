@@ -48,6 +48,7 @@ export default async function Game({
       {game.status === "waiting" && (
         <Waiting game={game} currentUser={currentUser} />
       )}
+      {game.status === "active" && <p>Game is active</p>}
     </div>
   );
 }

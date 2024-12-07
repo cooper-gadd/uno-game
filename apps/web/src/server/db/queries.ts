@@ -188,12 +188,12 @@ export async function createPlayer(createPlayer: Pick<CreatePlayer, "gameId">) {
     where: (players, { eq }) => eq(players.gameId, createPlayer.gameId),
   });
 
-  if (currentPlayers.length >= game.maxPlayers) {
-    throw new Error("Game is full");
+  if (currentPlayers.some((player) => player.userId === currentUser.id)) {
+    redirect(`/game/${createPlayer.gameId}`);
   }
 
-  if (currentPlayers.some((player) => player.userId === currentUser.id)) {
-    throw new Error("You are already in this game");
+  if (currentPlayers.length >= game.maxPlayers) {
+    throw new Error("Game is full");
   }
 
   await db.insert(players).values({
@@ -232,11 +232,9 @@ export async function startGame(gameId: number) {
     throw new Error("Game must have at least 2 players");
   }
 
-  // get all cards and shuffle them
   const cards = await db.query.cards.findMany();
   const deck = cards.sort(() => Math.random() - 0.5);
 
-  // deal 7 cards to each player
   for (const player of game.players) {
     const playerCards = deck.splice(0, 7);
     await db.insert(playerHands).values(
@@ -247,7 +245,26 @@ export async function startGame(gameId: number) {
     );
   }
 
-  // get first card that isn't a wild card
   const firstCard = deck.find((card) => !card.type.includes("wild"));
-  if (!firstCard) throw new Error("No valid first card found");
+
+  if (!firstCard) {
+    throw new Error("No valid first card found");
+  }
+
+  const firstPlayer = game.players[0];
+
+  if (!firstPlayer) {
+    throw new Error("No first player found");
+  }
+
+  await db
+    .update(games)
+    .set({
+      status: "active",
+      topCardId: firstCard.id,
+      currentTurn: firstPlayer.id,
+    })
+    .where(eq(games.id, gameId));
+
+  redirect(`/game/${gameId}`);
 }

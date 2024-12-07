@@ -1,4 +1,7 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
+import { startGame } from "@/server/db/queries";
 
 export function Waiting({
   game,
@@ -36,7 +39,11 @@ export function Waiting({
             There are {game.players.length} players in this game
           </p>
           {game.users.id === currentUser.id && (
-            <Button size="lg" className="mt-4">
+            <Button
+              size="lg"
+              className="mt-4"
+              onClick={async () => await startGame(game.id)}
+            >
               Start
             </Button>
           )}
