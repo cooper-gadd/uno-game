@@ -177,7 +177,7 @@ export const players = createTable("player", {
   hasCalledUno: boolean("has_called_uno").notNull().default(false),
 });
 
-export const playerRelations = relations(players, ({ one }) => ({
+export const playerRelations = relations(players, ({ one, many }) => ({
   user: one(users, {
     fields: [players.userId],
     references: [users.id],
@@ -186,6 +186,7 @@ export const playerRelations = relations(players, ({ one }) => ({
     fields: [players.gameId],
     references: [games.id],
   }),
+  playerHands: many(playerHands),
 }));
 
 export type CreatePlayer = InferInsertModel<typeof players>;

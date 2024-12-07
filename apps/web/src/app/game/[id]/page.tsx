@@ -1,6 +1,7 @@
 import { db } from "@/server/db";
 import { getCurrentUser } from "@/server/db/queries";
 import { redirect } from "next/navigation";
+import { Active } from "./_components/active";
 import { Waiting } from "./_components/waiting";
 
 export default async function Game({
@@ -48,7 +49,7 @@ export default async function Game({
       {game.status === "waiting" && (
         <Waiting game={game} currentUser={currentUser} />
       )}
-      {game.status === "active" && <p>Game is active</p>}
+      {game.status === "active" && <Active gameId={game.id} />}
     </div>
   );
 }
