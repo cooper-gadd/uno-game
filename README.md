@@ -5,7 +5,6 @@
 - [ ] Design the game board layout using SVG
 - [ ] Include card deck, discard pile, player hands, and game table
 - [ ] Create reusable SVG components for cards
-- [ ] Differentiate cards by color, number, and type (action cards)
 - [ ] Integrate SVG components into React
 - [ ] Ensure interactivity (e.g., clicking cards to play them)
 - [ ] Implement SVG animations to update opponent's board after a move
