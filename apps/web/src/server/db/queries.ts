@@ -11,6 +11,7 @@ import { db } from "@/server/db";
 import {
   chats,
   games,
+  playerHands,
   players,
   sessions,
   users,
@@ -157,9 +158,18 @@ export async function createGame(
 
   const currentUser = await getCurrentUser();
 
-  await db.insert(games).values({
-    ...createGame,
-    createdBy: currentUser.id,
+  const [game] = await db
+    .insert(games)
+    .values({
+      ...createGame,
+      createdBy: currentUser.id,
+    })
+    .returning({ insertedId: games.id });
+
+  if (!game) throw new Error("Failed to create game");
+
+  await createPlayer({
+    gameId: game.insertedId,
   });
 }
 
@@ -182,6 +192,10 @@ export async function createPlayer(createPlayer: Pick<CreatePlayer, "gameId">) {
     throw new Error("Game is full");
   }
 
+  if (currentPlayers.some((player) => player.userId === currentUser.id)) {
+    throw new Error("You are already in this game");
+  }
+
   await db.insert(players).values({
     ...createPlayer,
     userId: currentUser.id,
@@ -200,4 +214,40 @@ export async function createChat(createChat: Pick<CreateChat, "message">) {
     ...createChat,
     userId: currentUser.id,
   });
+}
+
+export async function startGame(gameId: number) {
+  const game = await db.query.games.findFirst({
+    where: (games, { eq }) => eq(games.id, gameId),
+    with: {
+      players: true,
+    },
+  });
+
+  if (!game) {
+    throw new Error("Game not found");
+  }
+
+  if (game.players.length < 2) {
+    throw new Error("Game must have at least 2 players");
+  }
+
+  // get all cards and shuffle them
+  const cards = await db.query.cards.findMany();
+  const deck = cards.sort(() => Math.random() - 0.5);
+
+  // deal 7 cards to each player
+  for (const player of game.players) {
+    const playerCards = deck.splice(0, 7);
+    await db.insert(playerHands).values(
+      playerCards.map((card) => ({
+        playerId: player.id,
+        cardId: card.id,
+      })),
+    );
+  }
+
+  // get first card that isn't a wild card
+  const firstCard = deck.find((card) => !card.type.includes("wild"));
+  if (!firstCard) throw new Error("No valid first card found");
 }

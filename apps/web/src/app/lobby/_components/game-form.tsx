@@ -24,7 +24,6 @@ import { createGame } from "@/server/db/queries";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { type z } from "zod";
 
 export function GameForm() {
@@ -42,10 +41,9 @@ export function GameForm() {
       await createGame(values);
       form.reset();
       form.clearErrors();
-      toast("Game created!");
       setOpen(false);
     } catch {
-      toast.error("Failed to create game");
+      // lol skill issues
     }
   }
   return (

@@ -7,44 +7,35 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { db } from "@/server/db";
-import { unstable_cache as cache } from "next/cache";
 import { Join } from "./join";
 
-const getGames = cache(
-  async () => {
-    return await db.query.games.findMany({
-      columns: {
-        id: true,
-        name: true,
-        createdAt: true,
-        maxPlayers: true,
-      },
-      with: {
-        users: {
-          columns: {
-            name: true,
-          },
+export async function Games() {
+  const games = await db.query.games.findMany({
+    columns: {
+      id: true,
+      name: true,
+      createdAt: true,
+      maxPlayers: true,
+    },
+    with: {
+      users: {
+        columns: {
+          name: true,
         },
-        players: {
-          columns: {},
-          with: {
-            user: {
-              columns: {
-                name: true,
-              },
+      },
+      players: {
+        columns: {},
+        with: {
+          user: {
+            columns: {
+              name: true,
             },
           },
         },
       },
-      where: (games, { eq }) => eq(games.status, "waiting"),
-    });
-  },
-  ["games"],
-  { revalidate: 60, tags: ["games"] },
-);
-
-export async function Games() {
-  const games = await getGames();
+    },
+    where: (games, { eq }) => eq(games.status, "waiting"),
+  });
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
