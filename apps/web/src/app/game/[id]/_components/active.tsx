@@ -1,5 +1,6 @@
 import { db } from "@/server/db";
 import { getCurrentUser } from "@/server/db/queries";
+import { redirect } from "next/navigation";
 import { UnoCard } from "./uno-card";
 
 export async function Active({ gameId }: { gameId: number }) {
@@ -23,7 +24,7 @@ export async function Active({ gameId }: { gameId: number }) {
   });
 
   if (!gameState?.players[0]) {
-    return <div>Error loading game state</div>;
+    redirect("/lobby");
   }
 
   const player = gameState.players[0];
@@ -31,18 +32,11 @@ export async function Active({ gameId }: { gameId: number }) {
 
   return (
     <div className="flex flex-col items-center gap-8 p-8">
-      <div className="text-center">
-        <h2 className="mb-4 text-2xl font-bold">Current Game</h2>
-        <UnoCard card={gameState.card!} />
-      </div>
-
-      <div className="w-full">
-        <h3 className="mb-4 text-xl font-semibold">Your Cards:</h3>
-        <div className="flex flex-wrap justify-center gap-4">
-          {playerCards.map(({ card }) => (
-            <UnoCard key={card.id} card={card} />
-          ))}
-        </div>
+      <UnoCard card={gameState.card!} />
+      <div className="flex w-full flex-wrap justify-center gap-4">
+        {playerCards.map(({ card }) => (
+          <UnoCard key={card.id} card={card} />
+        ))}
       </div>
     </div>
   );
