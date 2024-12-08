@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/server/db/queries";
 import { redirect } from "next/navigation";
 import { GameChat } from "./game-chat";
 import { UnoCard } from "./uno-card";
+import { Players } from "./players";
 
 export async function Active({ gameId }: { gameId: number }) {
   const currentUser = await getCurrentUser();
@@ -55,7 +56,9 @@ export async function Active({ gameId }: { gameId: number }) {
           <CardHeader>
             <CardTitle>Players</CardTitle>
           </CardHeader>
-          <CardContent></CardContent>
+          <CardContent>
+            <Players gameId={gameId} />
+          </CardContent>
         </Card>
       </div>
     </div>
