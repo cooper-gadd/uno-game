@@ -2,6 +2,7 @@ import { db } from "@/server/db";
 import { getCurrentUser } from "@/server/db/queries";
 import { redirect } from "next/navigation";
 import { UnoCard } from "./uno-card";
+import { GameChat } from "./game-chat";
 
 export async function Active({ gameId }: { gameId: number }) {
   const currentUser = await getCurrentUser();
@@ -38,6 +39,7 @@ export async function Active({ gameId }: { gameId: number }) {
           <UnoCard key={card.id} card={card} />
         ))}
       </div>
+      <GameChat gameId={gameId.toString()} />
     </div>
   );
 }

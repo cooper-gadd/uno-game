@@ -14,62 +14,124 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-type Client struct {
+type LobbyClient struct {
 	conn *websocket.Conn
-	room string
 }
 
-type Message struct {
+type LobbyMessage struct {
 	Name    string    `json:"name"`
 	Message string    `json:"message"`
 	SentAt  time.Time `json:"sentAt"`
 }
 
+type GameClient struct {
+	conn   *websocket.Conn
+	gameId string
+}
+
+type GameMessage struct {
+	Name    string    `json:"name"`
+	Message string    `json:"message"`
+	SentAt  time.Time `json:"sentAt"`
+	GameId  string    `json:"gameId"`
+}
+
 var (
-	clients   = make(map[*Client]bool)
-	broadcast = make(chan Message)
+	lobbyClients   = make(map[*LobbyClient]bool)
+	lobbyBroadcast = make(chan LobbyMessage)
+
+	gameClients   = make(map[*GameClient]bool)
+	gameBroadcast = make(chan GameMessage)
 )
 
-func handleConnections(w http.ResponseWriter, r *http.Request) {
+func handleLobbyConnections(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Printf("Failed to upgrade connection: %v", err)
+		log.Printf("Failed to upgrade lobby connection: %v", err)
 		return
 	}
 	defer ws.Close()
 
-	room := r.URL.Query().Get("room")
-	log.Printf("New connection in room: %s", room)
-
-	client := &Client{conn: ws, room: room}
-	clients[client] = true
-	log.Printf("Client connected to room %s. Total clients: %d", room, len(clients))
-	defer delete(clients, client)
+	client := &LobbyClient{conn: ws}
+	lobbyClients[client] = true
+	log.Printf("New lobby client connected. Total clients: %d", len(lobbyClients))
+	defer delete(lobbyClients, client)
 
 	for {
-		var msg Message
+		var msg LobbyMessage
 		err := ws.ReadJSON(&msg)
 		if err != nil {
-			log.Printf("Error reading message from client in room %s: %v", room, err)
+			log.Printf("Error reading lobby message: %v", err)
 			break
 		}
 		if msg.SentAt.IsZero() {
 			msg.SentAt = time.Now().UTC()
 		}
-		log.Printf("Received message in room %s: %v", room, msg)
-		broadcast <- msg
+		log.Printf("Received lobby message: %v", msg)
+		lobbyBroadcast <- msg
 	}
 }
 
-func handleMessages() {
-	for msg := range broadcast {
-		log.Printf("Broadcasting message: %v", msg)
-		for client := range clients {
+func handleLobbyMessages() {
+	for msg := range lobbyBroadcast {
+		log.Printf("Broadcasting lobby message: %v", msg)
+		for client := range lobbyClients {
 			err := client.conn.WriteJSON(msg)
 			if err != nil {
-				log.Printf("Error broadcasting to client in room %s: %v", client.room, err)
+				log.Printf("Error broadcasting to lobby client: %v", err)
 				client.conn.Close()
-				delete(clients, client)
+				delete(lobbyClients, client)
+			}
+		}
+	}
+}
+
+func handleGameConnections(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Printf("Failed to upgrade game connection: %v", err)
+		return
+	}
+	defer ws.Close()
+
+	gameId := r.URL.Query().Get("gameId")
+	if gameId == "" {
+		log.Printf("No game ID provided")
+		return
+	}
+
+	client := &GameClient{conn: ws, gameId: gameId}
+	gameClients[client] = true
+	log.Printf("New game client connected to game %s. Total clients: %d", gameId, len(gameClients))
+	defer delete(gameClients, client)
+
+	for {
+		var msg GameMessage
+		err := ws.ReadJSON(&msg)
+		if err != nil {
+			log.Printf("Error reading game message: %v", err)
+			break
+		}
+		if msg.SentAt.IsZero() {
+			msg.SentAt = time.Now().UTC()
+		}
+		msg.GameId = gameId
+		log.Printf("Received game message: %v", msg)
+		gameBroadcast <- msg
+	}
+}
+
+func handleGameMessages() {
+	for msg := range gameBroadcast {
+		log.Printf("Broadcasting game message: %v", msg)
+		for client := range gameClients {
+			if client.gameId == msg.GameId {
+				err := client.conn.WriteJSON(msg)
+				if err != nil {
+					log.Printf("Error broadcasting to game client: %v", err)
+					client.conn.Close()
+					delete(gameClients, client)
+				}
 			}
 		}
 	}
@@ -77,8 +139,12 @@ func handleMessages() {
 
 func main() {
 	log.Printf("Initializing WebSocket server...")
-	http.HandleFunc("/chat", handleConnections)
-	go handleMessages()
+
+	http.HandleFunc("/chat", handleLobbyConnections)
+	go handleLobbyMessages()
+
+	http.HandleFunc("/game-chat", handleGameConnections)
+	go handleGameMessages()
 
 	log.Println("Server started on :8080")
 	err := http.ListenAndServe(":8080", nil)

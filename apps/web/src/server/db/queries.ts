@@ -10,6 +10,7 @@ import {
 import { db } from "@/server/db";
 import {
   chats,
+  gameChats,
   games,
   playerHands,
   players,
@@ -267,4 +268,31 @@ export async function startGame(gameId: number) {
     .where(eq(games.id, gameId));
 
   redirect(`/game/${gameId}`);
+}
+
+export async function createGameChat({
+  message,
+  gameId,
+}: {
+  message: string;
+  gameId: number;
+}) {
+  chatSchema.parse({ message });
+
+  const currentUser = await getCurrentUser();
+
+  const [chatEntry] = await db
+    .insert(chats)
+    .values({
+      message,
+      userId: currentUser.id,
+    })
+    .returning();
+
+  if (!chatEntry) throw new Error("Failed to create chat");
+
+  await db.insert(gameChats).values({
+    gameId,
+    chatId: chatEntry.id,
+  });
 }
