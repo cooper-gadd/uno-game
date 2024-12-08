@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -38,9 +39,11 @@ type GameMessage struct {
 
 var (
 	lobbyClients   = make(map[*LobbyClient]bool)
+	lobbyMutex     sync.RWMutex
 	lobbyBroadcast = make(chan LobbyMessage)
 
 	gameClients   = make(map[*GameClient]bool)
+	gameMutex     sync.RWMutex
 	gameBroadcast = make(chan GameMessage)
 )
 
@@ -53,9 +56,18 @@ func handleLobbyConnections(w http.ResponseWriter, r *http.Request) {
 	defer ws.Close()
 
 	client := &LobbyClient{conn: ws}
+
+	lobbyMutex.Lock()
 	lobbyClients[client] = true
+	lobbyMutex.Unlock()
+
 	log.Printf("New lobby client connected. Total clients: %d", len(lobbyClients))
-	defer delete(lobbyClients, client)
+
+	defer func() {
+		lobbyMutex.Lock()
+		delete(lobbyClients, client)
+		lobbyMutex.Unlock()
+	}()
 
 	for {
 		var msg LobbyMessage
@@ -75,14 +87,20 @@ func handleLobbyConnections(w http.ResponseWriter, r *http.Request) {
 func handleLobbyMessages() {
 	for msg := range lobbyBroadcast {
 		log.Printf("Broadcasting lobby message: %v", msg)
+		lobbyMutex.RLock()
 		for client := range lobbyClients {
 			err := client.conn.WriteJSON(msg)
 			if err != nil {
 				log.Printf("Error broadcasting to lobby client: %v", err)
 				client.conn.Close()
+				lobbyMutex.RUnlock()
+				lobbyMutex.Lock()
 				delete(lobbyClients, client)
+				lobbyMutex.Unlock()
+				lobbyMutex.RLock()
 			}
 		}
+		lobbyMutex.RUnlock()
 	}
 }
 
@@ -101,9 +119,18 @@ func handleGameConnections(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := &GameClient{conn: ws, gameId: gameId}
+
+	gameMutex.Lock()
 	gameClients[client] = true
+	gameMutex.Unlock()
+
 	log.Printf("New game client connected to game %s. Total clients: %d", gameId, len(gameClients))
-	defer delete(gameClients, client)
+
+	defer func() {
+		gameMutex.Lock()
+		delete(gameClients, client)
+		gameMutex.Unlock()
+	}()
 
 	for {
 		var msg GameMessage
@@ -124,16 +151,22 @@ func handleGameConnections(w http.ResponseWriter, r *http.Request) {
 func handleGameMessages() {
 	for msg := range gameBroadcast {
 		log.Printf("Broadcasting game message: %v", msg)
+		gameMutex.RLock()
 		for client := range gameClients {
 			if client.gameId == msg.GameId {
 				err := client.conn.WriteJSON(msg)
 				if err != nil {
 					log.Printf("Error broadcasting to game client: %v", err)
 					client.conn.Close()
+					gameMutex.RUnlock()
+					gameMutex.Lock()
 					delete(gameClients, client)
+					gameMutex.Unlock()
+					gameMutex.RLock()
 				}
 			}
 		}
+		gameMutex.RUnlock()
 	}
 }
 
