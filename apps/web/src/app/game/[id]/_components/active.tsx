@@ -5,11 +5,15 @@ import { redirect } from "next/navigation";
 import { GameChat } from "./game-chat";
 import { UnoCard } from "./uno-card";
 import { Players } from "./players";
+import { Draw } from "./draw";
 
 export async function Active({ gameId }: { gameId: number }) {
   const currentUser = await getCurrentUser();
 
   const gameState = await db.query.games.findFirst({
+    columns: {
+      name: true,
+    },
     where: (games, { eq }) => eq(games.id, gameId),
     with: {
       players: {
@@ -35,19 +39,39 @@ export async function Active({ gameId }: { gameId: number }) {
 
   return (
     <div className="flex-1 flex-col space-y-6 p-4 md:flex">
-      <div className="flex items-center justify-center">
-        <UnoCard card={gameState.card!} />
+      <div className="flex flex-col items-start justify-between space-y-2 md:flex-row md:items-center">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">
+            {gameState.name}
+          </h2>
+          <p className="text-muted-foreground">
+            Have fun playing Uno with your friends!
+          </p>
+        </div>
       </div>
-      <div className="flex w-full flex-wrap justify-center gap-4">
-        {playerCards.map(({ card }) => (
-          <div
-            key={card.id}
-            className="cursor-pointer transition-transform hover:scale-105"
-          >
-            <UnoCard card={card} />
+      <Card>
+        <CardHeader>
+          <CardTitle>Game Board</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            <div className="flex items-center justify-center gap-2">
+              <UnoCard card={gameState.card!} />
+              <Draw gameId={gameId} playerId={player.id} />
+            </div>
+            <div className="flex w-full flex-wrap justify-center gap-4">
+              {playerCards.map(({ card }) => (
+                <div
+                  key={card.id}
+                  className="cursor-pointer transition-transform hover:scale-105"
+                >
+                  <UnoCard card={card} />
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-      </div>
+        </CardContent>
+      </Card>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
           <CardHeader>
