@@ -40,7 +40,12 @@ export async function Active({ gameId }: { gameId: number }) {
       </div>
       <div className="flex w-full flex-wrap justify-center gap-4">
         {playerCards.map(({ card }) => (
-          <UnoCard key={card.id} card={card} />
+          <div
+            key={card.id}
+            className="cursor-pointer transition-transform hover:scale-105"
+          >
+            <UnoCard card={card} />
+          </div>
         ))}
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">

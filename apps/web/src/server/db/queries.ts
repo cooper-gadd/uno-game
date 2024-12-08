@@ -296,3 +296,62 @@ export async function createGameChat({
     chatId: chatEntry.id,
   });
 }
+
+export async function drawCard({
+  gameId,
+  playerId,
+}: {
+  gameId: number;
+  playerId: number;
+}) {
+  const game = await db.query.games.findFirst({
+    where: (games, { eq }) => eq(games.id, gameId),
+    with: {
+      players: {
+        where: (players, { eq }) => eq(players.id, playerId),
+        with: {
+          playerHands: {
+            with: {
+              card: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!game) {
+    throw new Error("Game not found");
+  }
+
+  const player = game.players[0];
+
+  if (!player) {
+    throw new Error("Player not found");
+  }
+
+  const cards = await db.query.cards.findMany();
+
+  const playerCards = player.playerHands.map((hand) => hand.card);
+
+  const deck = cards.filter(
+    (card) =>
+      !playerCards.some(
+        (playerCard) =>
+          playerCard.id === card.id || playerCard.color === card.color,
+      ),
+  );
+
+  const drawnCard = deck[0];
+
+  if (!drawnCard) {
+    throw new Error("No card found");
+  }
+
+  await db.insert(playerHands).values({
+    playerId,
+    cardId: drawnCard.id,
+  });
+
+  redirect(`/game/${gameId}`);
+}

@@ -3,14 +3,12 @@ import { cn } from "@/lib/utils";
 import { type Card as CardType } from "@/server/db/schema";
 
 export function UnoCard({ card }: { card: CardType }) {
-  const isPlayable = true;
   const { color, type, value } = card;
 
   return (
     <Card
       className={cn(
         "h-36 w-24",
-        isPlayable && "cursor-pointer transition-transform hover:scale-105",
         (() => {
           if (color === "red") return "border-red-700";
           if (color === "blue") return "border-blue-700";
