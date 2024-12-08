@@ -1,5 +1,4 @@
 import { db } from "@/server/db";
-import { getCurrentUser } from "@/server/db/queries";
 import { redirect } from "next/navigation";
 import { Active } from "./_components/active";
 import { Waiting } from "./_components/waiting";
@@ -9,35 +8,11 @@ export default async function Game({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  const currentUser = await getCurrentUser();
+  const gameId = Number((await params).id);
 
   const game = await db.query.games.findFirst({
-    columns: {
-      id: true,
-      name: true,
-      createdAt: true,
-      maxPlayers: true,
-      status: true,
-    },
-    with: {
-      users: {
-        columns: {
-          id: true,
-        },
-      },
-      players: {
-        columns: {},
-        with: {
-          user: {
-            columns: {
-              name: true,
-            },
-          },
-        },
-      },
-    },
-    where: (games, { eq }) => eq(games.id, Number(id)),
+    columns: { status: true },
+    where: (games, { eq }) => eq(games.id, gameId),
   });
 
   if (!game || game.status === "finished") {
@@ -46,10 +21,8 @@ export default async function Game({
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      {game.status === "waiting" && (
-        <Waiting game={game} currentUser={currentUser} />
-      )}
-      {game.status === "active" && <Active gameId={game.id} />}
+      {game.status === "waiting" && <Waiting gameId={gameId} />}
+      {game.status === "active" && <Active gameId={gameId} />}
     </div>
   );
 }
