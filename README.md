@@ -52,8 +52,6 @@
 
 - [ ] Validate and sanitize all user inputs on the server side
 - [ ] Use prepared statements with parameterized queries throughout the application
-- [ ] Implement session security
-  - [ ] Use secure authentication tokens
 - [ ] Utilize HTTPS to encrypt data in transit (if possible)
 
 ---
@@ -75,19 +73,6 @@
 - [ ] Add visual feedback and animations
   - [ ] Animate card movements when played or drawn
   - [ ] Highlight the current player's turn clearly
-- [ ] Apply consistent styling using Tailwind CSS and shadcn/ui components
-- [ ] Ensure accessibility and usability standards are met
-- [ ] Test and fix cross-browser compatibility issues (Firefox, Chrome, Safari, and Edge)
-
----
-
-## **Testing and Debugging**
-
-- [ ] Write tests for critical components and functionalities
-- [ ] Simulate gameplay to identify and fix bugs or issues
-- [ ] Test edge cases (e.g., simultaneous actions, unexpected inputs)
-- [ ] Optimize performance of queries and WebSocket events
-- [ ] Ensure the application scales well with multiple users
 
 ---
 
