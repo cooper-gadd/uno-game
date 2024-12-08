@@ -52,7 +52,6 @@
 
 - [ ] Validate and sanitize all user inputs on the server side
 - [ ] Use prepared statements with parameterized queries throughout the application
-- [ ] Utilize HTTPS to encrypt data in transit (if possible)
 
 ---
 
