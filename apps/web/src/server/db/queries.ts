@@ -363,12 +363,12 @@ export async function playCard({
   playerId: number;
   cardId: number;
 }) {
-  // get the game
+  // get the game with ALL players
   const game = await db.query.games.findFirst({
     where: (games, { eq }) => eq(games.id, gameId),
     with: {
       players: {
-        where: (players, { eq }) => eq(players.id, playerId),
+        orderBy: (players, { asc }) => [asc(players.turnOrder)],
         with: {
           playerHands: {
             where: (playerHands, { eq }) => eq(playerHands.cardId, cardId),
@@ -393,14 +393,16 @@ export async function playCard({
   // remove the card from the player's hand
   await db.delete(playerHands).where(eq(playerHands.cardId, cardId));
 
-  // change the current turn
-  const currentPlayer = game.players[0];
+  // find the current player
+  const currentPlayer = game.players.find((p) => p.id === playerId);
   if (!currentPlayer) throw new Error("Player not found");
 
-  const nextPlayerIndex = (currentPlayer.turnOrder % game.players.length) + 1;
-  const nextPlayer = game.players.find((p) => p.turnOrder === nextPlayerIndex);
+  // find the next player
+  const nextPlayerIndex = currentPlayer.turnOrder % game.players.length;
+  const nextPlayer = game.players[nextPlayerIndex];
   if (!nextPlayer) throw new Error("Next player not found");
 
+  // update the current turn
   await db
     .update(games)
     .set({ currentTurn: nextPlayer.userId })
