@@ -331,6 +331,13 @@ export async function drawCard({
     throw new Error("Player not found");
   }
 
+  if (player.hasCalledUno) {
+    await db
+      .update(players)
+      .set({ hasCalledUno: false })
+      .where(eq(players.id, playerId));
+  }
+
   const cards = await db.query.cards.findMany();
   const playerCards = player.playerHands.map((hand) => hand.card);
   const deck = cards.filter(
@@ -548,6 +555,56 @@ export async function playCard({
       direction,
     })
     .where(eq(games.id, gameId));
+
+  revalidatePath(`/game/${gameId}`);
+}
+
+export async function callUno({
+  gameId,
+  playerId,
+}: {
+  gameId: number;
+  playerId: number;
+}) {
+  const currentUser = await getCurrentUser();
+
+  const currentPlayer = await db.query.players.findFirst({
+    where: (players, { and, eq }) =>
+      and(eq(players.gameId, gameId), eq(players.userId, currentUser.id)),
+    with: {
+      playerHands: true,
+    },
+  });
+
+  if (!currentPlayer) {
+    throw new Error("Player not found");
+  }
+
+  const unoPlayer = await db.query.players.findFirst({
+    where: (players, { and, eq }) =>
+      and(eq(players.gameId, gameId), eq(players.id, playerId)),
+    with: {
+      playerHands: true,
+    },
+  });
+
+  if (!unoPlayer) {
+    throw new Error("Player not found");
+  }
+
+  if (currentPlayer.userId === unoPlayer.userId) {
+    if (currentPlayer.playerHands.length === 1) {
+      await db
+        .update(players)
+        .set({ hasCalledUno: true })
+        .where(eq(players.id, playerId));
+    }
+  } else {
+    if (unoPlayer.playerHands.length === 1 && !unoPlayer.hasCalledUno) {
+      await drawCard({ gameId, playerId });
+      await drawCard({ gameId, playerId });
+    }
+  }
 
   revalidatePath(`/game/${gameId}`);
 }

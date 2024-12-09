@@ -8,9 +8,6 @@
 
 - [ ] Define the game state structure
   - [ ] Game status
-- [ ] Implement UNO call logic
-  - [ ] Allow players to call "UNO" when they have one card left
-  - [ ] Apply penalties for failing to call "UNO"
 
 ## **Real-Time Game Updates**
 

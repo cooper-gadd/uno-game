@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { db } from "@/server/db";
+import { CallUno } from "./call-uno";
+import { getCurrentUser } from "@/server/db/queries";
 
 export async function Players({
   gameId,
@@ -9,6 +10,7 @@ export async function Players({
   gameId: number;
   currentTurn: number;
 }) {
+  const currentUser = await getCurrentUser();
   const players = await db.query.players.findMany({
     where: (players, { eq }) => eq(players.gameId, gameId),
     with: {
@@ -45,7 +47,11 @@ export async function Players({
             </p>
           </div>
           {player.playerHands.length === 1 && (
-            <Button className="ml-auto">UNO!</Button>
+            <CallUno
+              gameId={gameId}
+              player={player}
+              currentUserId={currentUser.id}
+            />
           )}
         </div>
       ))}
