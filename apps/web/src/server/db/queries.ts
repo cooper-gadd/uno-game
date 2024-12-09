@@ -556,6 +556,17 @@ export async function playCard({
     })
     .where(eq(games.id, gameId));
 
+  const currentPlayerHands = await db.query.playerHands.findMany({
+    where: (playerHands, { eq }) => eq(playerHands.playerId, playerId),
+  });
+
+  if (currentPlayerHands.length === 0) {
+    await db
+      .update(games)
+      .set({ status: "finished" })
+      .where(eq(games.id, gameId));
+  }
+
   revalidatePath(`/game/${gameId}`);
 }
 
