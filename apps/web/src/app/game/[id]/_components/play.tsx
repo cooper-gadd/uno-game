@@ -4,6 +4,7 @@ import { type Card } from "@/server/db/schema";
 import { UnoCard } from "./uno-card";
 import { playCard } from "@/server/db/queries";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export function Play({
   gameId,
@@ -25,11 +26,15 @@ export function Play({
       onClick={async () => {
         if (!isPlayerTurn) return;
 
-        await playCard({
-          gameId,
-          playerId,
-          cardId: card.id,
-        });
+        try {
+          await playCard({
+            gameId,
+            playerId,
+            cardId: card.id,
+          });
+        } catch (error) {
+          toast.error((error as Error).message);
+        }
       }}
       className={cn(
         "transition-all",

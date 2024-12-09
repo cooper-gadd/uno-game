@@ -382,6 +382,33 @@ export async function playCard({
     throw new Error("Game not found");
   }
 
+  // validate the card
+  if (!game.topCardId) {
+    throw new Error("No top card found");
+  }
+
+  const topCard = await db.query.cards.findFirst({
+    where: (cards, { eq }) => eq(cards.id, game.topCardId!),
+  });
+
+  if (!topCard) {
+    throw new Error("Top card not found");
+  }
+
+  const card = await db.query.cards.findFirst({
+    where: (cards, { eq }) => eq(cards.id, cardId),
+  });
+
+  if (!card) {
+    throw new Error("Card not found");
+  }
+
+  if (card.type.includes("wild")) {
+    // TODO: handle color selection
+  } else if (topCard.color !== card.color || topCard.type !== card.type) {
+    throw new Error("You can't play that card.");
+  }
+
   // update the game state
   await db
     .update(games)
