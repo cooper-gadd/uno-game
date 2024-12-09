@@ -2,6 +2,7 @@ import { db } from "@/server/db";
 import { redirect } from "next/navigation";
 import { Active } from "./_components/active";
 import { Waiting } from "./_components/waiting";
+import { Finished } from "./_components/finished";
 
 export default async function Game({
   params,
@@ -23,7 +24,7 @@ export default async function Game({
     <div className="flex min-h-screen items-center justify-center">
       {game.status === "waiting" && <Waiting gameId={gameId} />}
       {game.status === "active" && <Active gameId={gameId} />}
-      {game.status === "finished" && <div>Game Over</div>}
+      {game.status === "finished" && <Finished gameId={gameId} />}
     </div>
   );
 }

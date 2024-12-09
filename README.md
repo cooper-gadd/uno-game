@@ -4,11 +4,6 @@
 
 - [ ] Create reusable SVG components for cards
 
-## **Game Logic Implementation**
-
-- [ ] Define the game state structure
-  - [ ] Game status
-
 ## **Real-Time Game Updates**
 
 - [ ] Use WebSockets to synchronize game state between players
@@ -18,15 +13,6 @@
 
 - [ ] Validate and sanitize all user inputs on the server side
 - [ ] Use prepared statements with parameterized queries throughout the application
-
-## **Game Conclusion and Post-Game Flow**
-
-- [ ] Implement win detection logic
-- [ ] Update game status to 'finished' in the database
-- [ ] Notify both players when the game ends
-- [ ] Display game result and summary
-- [ ] Provide option for players to return to the lobby
-- [ ] Update player statuses to make them available in the lobby again
 
 ## **Deployment**
 
