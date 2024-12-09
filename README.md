@@ -37,10 +37,4 @@
 
 ## **Potential Enhancements (Optional for Extra Credit)**
 
-- [ ] Implement additional features
-  - [ ] Game statistics or leaderboards
-- [ ] Add enhanced user experience features
-  - [ ] Sound effects
-  - [ ] Themed card designs
-  - [ ] Screen reader support
-- [ ] Implement a surprise element to exceed expectations!
+- [ ] Game statistics or leaderboards
