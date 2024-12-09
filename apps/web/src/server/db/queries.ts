@@ -97,6 +97,14 @@ export async function register({
     throw new Error("Invalid nonce");
   }
 
+  const existingUser = await db.query.users.findFirst({
+    where: (users, { eq }) => eq(users.username, createUser.username),
+  });
+
+  if (existingUser) {
+    throw new Error("Username already exists");
+  }
+
   const hashedPassword = await bcrypt.hash(
     createUser.password,
     Number(env.SALT_ROUNDS),
