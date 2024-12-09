@@ -8,8 +8,6 @@
 
 - [ ] Define the game state structure
   - [ ] Game status
-- [ ] Implement card mechanics
-  - [ ] Handle action card effects (wild, wild draw four)
 - [ ] Implement UNO call logic
   - [ ] Allow players to call "UNO" when they have one card left
   - [ ] Apply penalties for failing to call "UNO"
