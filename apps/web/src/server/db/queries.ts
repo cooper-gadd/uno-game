@@ -263,7 +263,7 @@ export async function startGame(gameId: number) {
     .set({
       status: "active",
       topCardId: firstCard.id,
-      currentTurn: firstPlayer.id,
+      currentTurn: firstPlayer.userId,
     })
     .where(eq(games.id, gameId));
 

@@ -2,7 +2,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { db } from "@/server/db";
 
-export async function Players({ gameId }: { gameId: number }) {
+export async function Players({
+  gameId,
+  currentTurn,
+}: {
+  gameId: number;
+  currentTurn: number;
+}) {
   const players = await db.query.players.findMany({
     where: (players, { eq }) => eq(players.gameId, gameId),
     with: {
@@ -26,9 +32,14 @@ export async function Players({ gameId }: { gameId: number }) {
             <AvatarFallback>{player.user.name[0]}</AvatarFallback>
           </Avatar>
           <div className="ml-4 space-y-1">
-            <p className="text-sm font-medium leading-none">
-              {player.user.name}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium leading-none">
+                {player.user.name}
+              </p>
+              {player.userId === currentTurn && (
+                <div className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
+              )}
+            </div>
             <p className="text-sm text-muted-foreground">
               {player.playerHands.length} cards
             </p>

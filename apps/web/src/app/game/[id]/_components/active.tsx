@@ -13,6 +13,7 @@ export async function Active({ gameId }: { gameId: number }) {
   const gameState = await db.query.games.findFirst({
     columns: {
       name: true,
+      currentTurn: true,
     },
     where: (games, { eq }) => eq(games.id, gameId),
     with: {
@@ -32,6 +33,10 @@ export async function Active({ gameId }: { gameId: number }) {
 
   if (!gameState?.players[0]) {
     redirect("/lobby");
+  }
+
+  if (!gameState.currentTurn) {
+    throw new Error("Current turn not found");
   }
 
   const player = gameState.players[0];
@@ -86,7 +91,7 @@ export async function Active({ gameId }: { gameId: number }) {
             <CardTitle>Players</CardTitle>
           </CardHeader>
           <CardContent>
-            <Players gameId={gameId} />
+            <Players gameId={gameId} currentTurn={gameState.currentTurn} />
           </CardContent>
         </Card>
       </div>
