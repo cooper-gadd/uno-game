@@ -7,11 +7,9 @@
 ## **Game Logic Implementation**
 
 - [ ] Define the game state structure
-  - [ ] Direction, game status
+  - [ ] Game status
 - [ ] Implement card mechanics
-  - [ ] Handle action card effects (skip, reverse, draw two, wild, etc.)
-- [ ] Implement turn management
-  - [ ] Handle direction changes
+  - [ ] Handle action card effects (wild, wild draw four)
 - [ ] Implement UNO call logic
   - [ ] Allow players to call "UNO" when they have one card left
   - [ ] Apply penalties for failing to call "UNO"

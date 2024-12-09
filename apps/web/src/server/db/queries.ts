@@ -332,13 +332,10 @@ export async function drawCard({
   }
 
   const cards = await db.query.cards.findMany();
-
   const playerCards = player.playerHands.map((hand) => hand.card);
-
   const deck = cards.filter(
     (card) => !playerCards.some((playerCard) => playerCard.id === card.id),
   );
-
   const randomIndex = Math.floor(Math.random() * deck.length);
   const drawnCard = deck[randomIndex];
 
@@ -363,7 +360,6 @@ export async function playCard({
   playerId: number;
   cardId: number;
 }) {
-  // get the game with ALL players
   const game = await db.query.games.findFirst({
     where: (games, { eq }) => eq(games.id, gameId),
     with: {
@@ -382,7 +378,6 @@ export async function playCard({
     throw new Error("Game not found");
   }
 
-  // validate the card
   if (!game.topCardId) {
     throw new Error("No top card found");
   }
@@ -403,14 +398,24 @@ export async function playCard({
     throw new Error("Card not found");
   }
 
-  if (
-    !card.type.includes("wild") &&
-    (topCard.color !== card.color || topCard.type !== card.type)
+  if (card.color === "wild" || card.type === "wild_draw_four") {
+    // TODO: handle color selection
+  } else if (card.type === "number") {
+    if (topCard.color !== card.color && topCard.value !== card.value) {
+      throw new Error("Invalid play.");
+    }
+  } else if (
+    card.type === "draw_two" ||
+    card.type === "skip" ||
+    card.type === "reverse"
   ) {
-    throw new Error("You can't play that card.");
+    if (topCard.color !== card.color && topCard.type !== card.type) {
+      throw new Error("Invalid play.");
+    }
+  } else {
+    throw new Error("Invalid card type.");
   }
 
-  // update the game state
   await db
     .update(games)
     .set({
@@ -418,22 +423,108 @@ export async function playCard({
     })
     .where(eq(games.id, gameId));
 
-  // remove the card from the player's hand
   await db.delete(playerHands).where(eq(playerHands.cardId, cardId));
 
-  // find the current player
   const currentPlayer = game.players.find((p) => p.id === playerId);
   if (!currentPlayer) throw new Error("Player not found");
 
-  // find the next player
-  const nextPlayerIndex = currentPlayer.turnOrder % game.players.length;
-  const nextPlayer = game.players[nextPlayerIndex];
+  let direction = game.direction;
+  let nextPlayerTurnOrder;
+
+  if (card.type === "reverse") {
+    direction =
+      game.direction === "clockwise" ? "counter_clockwise" : "clockwise";
+
+    if (game.players.length === 2) {
+      // with 2 players, reverse acts like a skip
+      nextPlayerTurnOrder = currentPlayer.turnOrder;
+    } else {
+      nextPlayerTurnOrder =
+        direction === "clockwise"
+          ? currentPlayer.turnOrder === 1
+            ? game.players.length
+            : currentPlayer.turnOrder - 1
+          : currentPlayer.turnOrder === game.players.length
+            ? 1
+            : currentPlayer.turnOrder + 1;
+    }
+  } else if (card.type === "skip") {
+    if (game.players.length === 2) {
+      // with 2 players, skip makes it your turn again
+      nextPlayerTurnOrder = currentPlayer.turnOrder;
+    } else {
+      nextPlayerTurnOrder =
+        direction === "clockwise"
+          ? currentPlayer.turnOrder === game.players.length
+            ? 2
+            : currentPlayer.turnOrder + 2 > game.players.length
+              ? 1
+              : currentPlayer.turnOrder + 2
+          : currentPlayer.turnOrder <= 2
+            ? currentPlayer.turnOrder === 1
+              ? game.players.length - 1
+              : game.players.length
+            : currentPlayer.turnOrder - 2;
+    }
+  } else if (card.type === "draw_two" || card.type === "wild_draw_four") {
+    const nextPlayerToDraw =
+      direction === "clockwise"
+        ? currentPlayer.turnOrder === game.players.length
+          ? game.players.find((p) => p.turnOrder === 1)
+          : game.players.find(
+              (p) => p.turnOrder === currentPlayer.turnOrder + 1,
+            )
+        : currentPlayer.turnOrder === 1
+          ? game.players.find((p) => p.turnOrder === game.players.length)
+          : game.players.find(
+              (p) => p.turnOrder === currentPlayer.turnOrder - 1,
+            );
+
+    if (!nextPlayerToDraw) throw new Error("Next player not found");
+
+    if (card.type === "draw_two") {
+      await drawCard({ gameId, playerId: nextPlayerToDraw.id });
+      await drawCard({ gameId, playerId: nextPlayerToDraw.id });
+    } else {
+      for (let i = 0; i < 4; i++) {
+        await drawCard({ gameId, playerId: nextPlayerToDraw.id });
+      }
+    }
+
+    if (game.players.length === 2) {
+      nextPlayerTurnOrder = currentPlayer.turnOrder;
+    } else {
+      nextPlayerTurnOrder =
+        direction === "clockwise"
+          ? nextPlayerToDraw.turnOrder === game.players.length
+            ? 1
+            : nextPlayerToDraw.turnOrder + 1
+          : nextPlayerToDraw.turnOrder === 1
+            ? game.players.length
+            : nextPlayerToDraw.turnOrder - 1;
+    }
+  } else {
+    nextPlayerTurnOrder =
+      direction === "clockwise"
+        ? currentPlayer.turnOrder === game.players.length
+          ? 1
+          : currentPlayer.turnOrder + 1
+        : currentPlayer.turnOrder === 1
+          ? game.players.length
+          : currentPlayer.turnOrder - 1;
+  }
+
+  const nextPlayer = game.players.find(
+    (p) => p.turnOrder === nextPlayerTurnOrder,
+  );
   if (!nextPlayer) throw new Error("Next player not found");
 
-  // update the current turn
   await db
     .update(games)
-    .set({ currentTurn: nextPlayer.userId })
+    .set({
+      currentTurn: nextPlayer.userId,
+      direction,
+    })
     .where(eq(games.id, gameId));
 
   revalidatePath(`/game/${gameId}`);
