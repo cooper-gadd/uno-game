@@ -7,12 +7,12 @@
 ## **Game Logic Implementation**
 
 - [ ] Define the game state structure
-  - [ ] Current player turn, direction, deck, discard pile, player hands, game status
+  - [ ] Direction, game status
 - [ ] Implement card mechanics
   - [ ] Playing cards (matching by color, number, or symbol)
   - [ ] Handle action card effects (skip, reverse, draw two, wild, etc.)
 - [ ] Implement turn management
-  - [ ] Enforce turn order and handle direction changes
+  - [ ] Handle direction changes
 - [ ] Implement UNO call logic
   - [ ] Allow players to call "UNO" when they have one card left
   - [ ] Apply penalties for failing to call "UNO"
@@ -36,7 +36,6 @@
 - [ ] Display game result and summary
 - [ ] Provide option for players to return to the lobby
 - [ ] Update player statuses to make them available in the lobby again
-- [ ] Ensure players cannot chat with lobby members during a game and vice versa
 
 ## **Deployment**
 
@@ -62,9 +61,7 @@
 ## **Potential Enhancements (Optional for Extra Credit)**
 
 - [ ] Implement additional features
-  - [ ] Player avatars or profile customization
   - [ ] Game statistics or leaderboards
-  - [ ] Different game modes or rule variations
 - [ ] Add enhanced user experience features
   - [ ] Sound effects
   - [ ] Themed card designs
