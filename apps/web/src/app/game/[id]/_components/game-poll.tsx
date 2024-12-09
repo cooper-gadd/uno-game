@@ -9,7 +9,7 @@ export function GamePoller() {
   useEffect(() => {
     const interval = setInterval(() => {
       router.refresh();
-    }, 2000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [router]);
