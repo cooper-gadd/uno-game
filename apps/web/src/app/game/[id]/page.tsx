@@ -15,7 +15,7 @@ export default async function Game({
     where: (games, { eq }) => eq(games.id, gameId),
   });
 
-  if (!game || game.status === "finished") {
+  if (!game) {
     redirect("/lobby");
   }
 
@@ -23,6 +23,7 @@ export default async function Game({
     <div className="flex min-h-screen items-center justify-center">
       {game.status === "waiting" && <Waiting gameId={gameId} />}
       {game.status === "active" && <Active gameId={gameId} />}
+      {game.status === "finished" && <div>Game Over</div>}
     </div>
   );
 }
