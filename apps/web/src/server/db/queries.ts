@@ -23,6 +23,7 @@ import {
 } from "@/server/db/schema";
 import bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { v4 as uuid } from "uuid";
@@ -267,7 +268,7 @@ export async function startGame(gameId: number) {
     })
     .where(eq(games.id, gameId));
 
-  redirect(`/game/${gameId}`);
+  revalidatePath(`/game/${gameId}`);
 }
 
 export async function createGameChat({
@@ -335,14 +336,11 @@ export async function drawCard({
   const playerCards = player.playerHands.map((hand) => hand.card);
 
   const deck = cards.filter(
-    (card) =>
-      !playerCards.some(
-        (playerCard) =>
-          playerCard.id === card.id || playerCard.color === card.color,
-      ),
+    (card) => !playerCards.some((playerCard) => playerCard.id === card.id),
   );
 
-  const drawnCard = deck[0];
+  const randomIndex = Math.floor(Math.random() * deck.length);
+  const drawnCard = deck[randomIndex];
 
   if (!drawnCard) {
     throw new Error("No card found");
@@ -353,7 +351,7 @@ export async function drawCard({
     cardId: drawnCard.id,
   });
 
-  redirect(`/game/${gameId}`);
+  revalidatePath(`/game/${gameId}`);
 }
 
 export async function playCard({
@@ -408,5 +406,5 @@ export async function playCard({
     .set({ currentTurn: nextPlayer.userId })
     .where(eq(games.id, gameId));
 
-  redirect(`/game/${gameId}`);
+  revalidatePath(`/game/${gameId}`);
 }
