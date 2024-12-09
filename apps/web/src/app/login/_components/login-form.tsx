@@ -12,10 +12,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { type z } from "zod";
-import { login } from "@/server/db/queries";
 import { toast } from "sonner";
-import { loginSchema } from "@/lib/schemas";
+import { type z } from "zod";
+import { login } from "../actions";
+import { loginSchema } from "../schemas";
 
 export function LoginForm() {
   const form = useForm<z.infer<typeof loginSchema>>({

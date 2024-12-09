@@ -1,39 +1,13 @@
-import { getCurrentUser } from "@/server/db/queries";
+import { getCurrentUser } from "@/server/db/context";
 import { StartGame } from "./start-game";
-import { db } from "@/server/db";
-import { redirect } from "next/navigation";
+import { type getGame } from "../actions";
 
-export async function Waiting({ gameId }: { gameId: number }) {
+export async function Waiting({
+  game,
+}: {
+  game: Awaited<ReturnType<typeof getGame>>;
+}) {
   const currentUser = await getCurrentUser();
-
-  const game = await db.query.games.findFirst({
-    columns: {
-      id: true,
-      name: true,
-    },
-    with: {
-      users: {
-        columns: {
-          id: true,
-        },
-      },
-      players: {
-        columns: {},
-        with: {
-          user: {
-            columns: {
-              name: true,
-            },
-          },
-        },
-      },
-    },
-    where: (games, { eq }) => eq(games.id, gameId),
-  });
-
-  if (!game) {
-    redirect("/lobby");
-  }
 
   return (
     <div className="flex min-h-screen items-center justify-center">

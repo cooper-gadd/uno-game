@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { startGame } from "@/server/db/queries";
+import { startGame } from "../actions";
 
 export function StartGame({ gameId }: { gameId: number }) {
   return (

@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { type Card } from "@/server/db/schema";
-import { UnoCard } from "./uno-card";
-import { playCard } from "@/server/db/queries";
 import { cn } from "@/lib/utils";
+import { type Card } from "@/server/db/schema";
+import { useState } from "react";
 import { toast } from "sonner";
+import { playCard } from "../actions";
 import { ColorPickerDialog } from "./color-picker-dialog";
+import { UnoCard } from "./uno-card";
 
 type Color = "red" | "green" | "blue" | "yellow";
 

@@ -9,14 +9,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useChat } from "@/hooks/use-chat";
-import { chatSchema } from "@/lib/schemas";
-import { createChat } from "@/server/db/queries";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Send } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { type z } from "zod";
+import { createChat } from "../actions";
+import { chatSchema } from "../schemas";
+import { useChat } from "../hooks";
 
 export function ChatForm({
   currentUser,

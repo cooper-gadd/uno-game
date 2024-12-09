@@ -1,8 +1,8 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { drawCard } from "@/server/db/queries";
 import { cn } from "@/lib/utils";
+import { drawCard } from "../actions";
 
 export function Draw({
   gameId,

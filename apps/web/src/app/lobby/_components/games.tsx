@@ -6,40 +6,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { db } from "@/server/db";
 import { Join } from "./join";
+import { getLobbyGames } from "../actions";
 
 export async function Games() {
-  const games = await db.query.games.findMany({
-    columns: {
-      id: true,
-      name: true,
-      createdAt: true,
-      maxPlayers: true,
-    },
-    with: {
-      users: {
-        columns: {
-          name: true,
-        },
-      },
-      players: {
-        columns: {},
-        with: {
-          user: {
-            columns: {
-              name: true,
-            },
-          },
-        },
-      },
-    },
-    where: (games, { eq }) => eq(games.status, "waiting"),
-  });
+  const lobbyGames = await getLobbyGames();
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {games.map((game) => (
+      {lobbyGames.map((game) => (
         <Card key={game.id}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">

@@ -1,7 +1,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { GameChatForm } from "./game-chat-form";
 import { GameChats } from "./game-chats";
-import { getCurrentUser } from "@/server/db/queries";
+import { getCurrentUser } from "@/server/db/context";
 
 export async function GameChat({ gameId }: { gameId: string }) {
   const currentUser = await getCurrentUser();

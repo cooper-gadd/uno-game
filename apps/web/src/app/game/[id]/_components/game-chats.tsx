@@ -6,8 +6,8 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { useGameChat } from "@/hooks/use-game-chat";
 import { useEffect, useRef, useState } from "react";
+import { useGameChat } from "../hooks";
 
 export function GameChats({ gameId }: { gameId: string }) {
   const { chat } = useGameChat(gameId);

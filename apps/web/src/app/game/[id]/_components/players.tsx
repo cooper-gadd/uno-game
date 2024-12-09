@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { db } from "@/server/db";
 import { CallUno } from "./call-uno";
-import { getCurrentUser } from "@/server/db/queries";
+import { getCurrentUser } from "@/server/db/context";
+import { getPlayers } from "../actions";
 
 export async function Players({
   gameId,
@@ -11,13 +11,7 @@ export async function Players({
   currentTurn: number;
 }) {
   const currentUser = await getCurrentUser();
-  const players = await db.query.players.findMany({
-    where: (players, { eq }) => eq(players.gameId, gameId),
-    with: {
-      user: true,
-      playerHands: true,
-    },
-  });
+  const players = await getPlayers({ gameId });
 
   return (
     <div>

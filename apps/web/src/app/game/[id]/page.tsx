@@ -1,8 +1,7 @@
-import { db } from "@/server/db";
-import { redirect } from "next/navigation";
 import { Active } from "./_components/active";
 import { Waiting } from "./_components/waiting";
 import { Finished } from "./_components/finished";
+import { getGame } from "./actions";
 
 export default async function Game({
   params,
@@ -10,21 +9,13 @@ export default async function Game({
   params: Promise<{ id: string }>;
 }) {
   const gameId = Number((await params).id);
-
-  const game = await db.query.games.findFirst({
-    columns: { status: true },
-    where: (games, { eq }) => eq(games.id, gameId),
-  });
-
-  if (!game) {
-    redirect("/lobby");
-  }
+  const game = await getGame({ gameId });
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      {game.status === "waiting" && <Waiting gameId={gameId} />}
-      {game.status === "active" && <Active gameId={gameId} />}
-      {game.status === "finished" && <Finished gameId={gameId} />}
+      {game.status === "waiting" && <Waiting game={game} />}
+      {game.status === "active" && <Active game={game} />}
+      {game.status === "finished" && <Finished game={game} />}
     </div>
   );
 }

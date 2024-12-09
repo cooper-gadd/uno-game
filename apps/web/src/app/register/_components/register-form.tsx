@@ -13,8 +13,8 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { type z } from "zod";
-import { register } from "@/server/db/queries";
-import { registerSchema } from "@/lib/schemas";
+import { register } from "../actions";
+import { registerSchema } from "../schemas";
 
 export function RegisterForm({
   nonce,

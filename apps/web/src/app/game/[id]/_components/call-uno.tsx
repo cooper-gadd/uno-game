@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { callUno } from "@/server/db/queries";
 import { useOptimistic, useTransition } from "react";
+import { callUno } from "../actions";
 
 export function CallUno({
   gameId,

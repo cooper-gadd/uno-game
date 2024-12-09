@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { createPlayer } from "@/server/db/queries";
+import { createPlayer } from "../actions";
 
 export function Join({ gameId }: { gameId: number }) {
   return (

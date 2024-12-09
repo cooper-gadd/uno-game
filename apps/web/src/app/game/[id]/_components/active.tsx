@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { db } from "@/server/db";
-import { getCurrentUser } from "@/server/db/queries";
+import { getCurrentUser } from "@/server/db/context";
 import { redirect } from "next/navigation";
 import { GameChat } from "./game-chat";
 import { UnoCard } from "./uno-card";
@@ -8,41 +7,25 @@ import { Players } from "./players";
 import { Draw } from "./draw";
 import { Play } from "./play";
 import { GamePoller } from "./game-poll";
+import { type getGame } from "../actions";
 
-export async function Active({ gameId }: { gameId: number }) {
+export async function Active({
+  game,
+}: {
+  game: Awaited<ReturnType<typeof getGame>>;
+}) {
   const currentUser = await getCurrentUser();
-
-  const game = await db.query.games.findFirst({
-    columns: {
-      name: true,
-      currentTurn: true,
-    },
-    where: (games, { eq }) => eq(games.id, gameId),
-    with: {
-      players: {
-        where: (players, { eq }) => eq(players.userId, currentUser.id),
-        with: {
-          playerHands: {
-            with: {
-              card: true,
-            },
-            orderBy: (card, { asc }) => [asc(card.cardId)],
-          },
-        },
-      },
-      card: true,
-    },
-  });
-
-  if (!game?.players[0]) {
-    redirect("/lobby");
-  }
 
   if (!game.currentTurn) {
     throw new Error("Current turn not found");
   }
 
-  const player = game.players[0];
+  const player = game.players.find((p) => p.user.id === currentUser.id);
+
+  if (!player) {
+    redirect("/lobby");
+  }
+
   const playerCards = player.playerHands;
 
   return (
@@ -65,7 +48,7 @@ export async function Active({ gameId }: { gameId: number }) {
             <div className="flex items-center justify-center gap-2">
               <UnoCard card={game.card!} />
               <Draw
-                gameId={gameId}
+                gameId={game.id}
                 playerId={player.id}
                 currentTurn={game.currentTurn}
                 userId={currentUser.id}
@@ -79,7 +62,7 @@ export async function Active({ gameId }: { gameId: number }) {
                 >
                   <Play
                     card={card}
-                    gameId={gameId}
+                    gameId={game.id}
                     playerId={player.id}
                     currentTurn={game.currentTurn!}
                     userId={currentUser.id}
@@ -96,7 +79,7 @@ export async function Active({ gameId }: { gameId: number }) {
             <CardTitle>Game Chat</CardTitle>
           </CardHeader>
           <CardContent>
-            <GameChat gameId={gameId.toString()} />
+            <GameChat gameId={game.id.toString()} />
           </CardContent>
         </Card>
         <Card className="col-span-3">
@@ -104,7 +87,7 @@ export async function Active({ gameId }: { gameId: number }) {
             <CardTitle>Players</CardTitle>
           </CardHeader>
           <CardContent>
-            <Players gameId={gameId} currentTurn={game.currentTurn} />
+            <Players gameId={game.id} currentTurn={game.currentTurn} />
           </CardContent>
         </Card>
       </div>

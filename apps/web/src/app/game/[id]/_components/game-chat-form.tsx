@@ -9,14 +9,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useGameChat } from "@/hooks/use-game-chat";
-import { chatSchema } from "@/lib/schemas";
-import { createGameChat } from "@/server/db/queries";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Send } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { type z } from "zod";
+import { createGameChat } from "../actions";
+import { gameChatSchema } from "../schemas";
+import { useGameChat } from "../hooks";
 
 export function GameChatForm({
   currentUser,
@@ -31,14 +31,14 @@ export function GameChatForm({
 }) {
   const { sendChat } = useGameChat(gameId);
 
-  const form = useForm<z.infer<typeof chatSchema>>({
-    resolver: zodResolver(chatSchema),
+  const form = useForm<z.infer<typeof gameChatSchema>>({
+    resolver: zodResolver(gameChatSchema),
     defaultValues: {
       message: "",
     },
   });
 
-  async function onSubmit(values: z.infer<typeof chatSchema>) {
+  async function onSubmit(values: z.infer<typeof gameChatSchema>) {
     try {
       await createGameChat({ ...values, gameId: parseInt(gameId) });
       sendChat({

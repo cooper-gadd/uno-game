@@ -1,32 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { db } from "@/server/db";
 import Link from "next/link";
+import { type getGame } from "../actions";
 
-export async function Finished({ gameId }: { gameId: number }) {
-  const game = await db.query.games.findFirst({
-    columns: {
-      id: true,
-      name: true,
-    },
-    with: {
-      players: {
-        with: {
-          user: {
-            columns: {
-              name: true,
-            },
-          },
-          playerHands: true,
-        },
-      },
-    },
-    where: (games, { eq }) => eq(games.id, gameId),
-  });
-
-  if (!game) {
-    return null;
-  }
-
+export async function Finished({
+  game,
+}: {
+  game: Awaited<ReturnType<typeof getGame>>;
+}) {
   const winner = game.players.find((player) => player.playerHands.length === 0);
 
   if (!winner) {

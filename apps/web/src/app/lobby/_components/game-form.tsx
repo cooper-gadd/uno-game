@@ -19,12 +19,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { gameSchema } from "@/lib/schemas";
-import { createGame } from "@/server/db/queries";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { type z } from "zod";
+import { createGame } from "../actions";
+import { gameSchema } from "../schemas";
 
 export function GameForm() {
   const [open, setOpen] = React.useState(false);
