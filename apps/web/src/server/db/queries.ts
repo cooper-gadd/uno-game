@@ -317,57 +317,59 @@ export async function drawCard({
   gameId: number;
   playerId: number;
 }) {
-  const game = await db.query.games.findFirst({
-    where: (games, { eq }) => eq(games.id, gameId),
-    with: {
-      players: {
-        where: (players, { eq }) => eq(players.id, playerId),
-        with: {
-          playerHands: {
-            with: {
-              card: true,
+  await db.transaction(async (tx) => {
+    const game = await tx.query.games.findFirst({
+      where: (games, { eq }) => eq(games.id, gameId),
+      with: {
+        players: {
+          where: (players, { eq }) => eq(players.id, playerId),
+          with: {
+            playerHands: {
+              with: {
+                card: true,
+              },
             },
           },
         },
       },
-    },
+    });
+
+    if (!game) {
+      throw new Error("Game not found");
+    }
+
+    const player = game.players[0];
+
+    if (!player) {
+      throw new Error("Player not found");
+    }
+
+    if (player.hasCalledUno) {
+      await tx
+        .update(players)
+        .set({ hasCalledUno: false })
+        .where(eq(players.id, playerId));
+    }
+
+    const cards = await tx.query.cards.findMany();
+    const playerCards = player.playerHands.map((hand) => hand.card);
+    const deck = cards.filter(
+      (card) => !playerCards.some((playerCard) => playerCard.id === card.id),
+    );
+    const randomIndex = Math.floor(Math.random() * deck.length);
+    const drawnCard = deck[randomIndex];
+
+    if (!drawnCard) {
+      throw new Error("No card found");
+    }
+
+    await tx.insert(playerHands).values({
+      playerId,
+      cardId: drawnCard.id,
+    });
+
+    revalidatePath(`/game/${gameId}`);
   });
-
-  if (!game) {
-    throw new Error("Game not found");
-  }
-
-  const player = game.players[0];
-
-  if (!player) {
-    throw new Error("Player not found");
-  }
-
-  if (player.hasCalledUno) {
-    await db
-      .update(players)
-      .set({ hasCalledUno: false })
-      .where(eq(players.id, playerId));
-  }
-
-  const cards = await db.query.cards.findMany();
-  const playerCards = player.playerHands.map((hand) => hand.card);
-  const deck = cards.filter(
-    (card) => !playerCards.some((playerCard) => playerCard.id === card.id),
-  );
-  const randomIndex = Math.floor(Math.random() * deck.length);
-  const drawnCard = deck[randomIndex];
-
-  if (!drawnCard) {
-    throw new Error("No card found");
-  }
-
-  await db.insert(playerHands).values({
-    playerId,
-    cardId: drawnCard.id,
-  });
-
-  revalidatePath(`/game/${gameId}`);
 }
 
 export async function playCard({
