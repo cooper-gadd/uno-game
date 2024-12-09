@@ -355,3 +355,58 @@ export async function drawCard({
 
   redirect(`/game/${gameId}`);
 }
+
+export async function playCard({
+  gameId,
+  playerId,
+  cardId,
+}: {
+  gameId: number;
+  playerId: number;
+  cardId: number;
+}) {
+  // get the game
+  const game = await db.query.games.findFirst({
+    where: (games, { eq }) => eq(games.id, gameId),
+    with: {
+      players: {
+        where: (players, { eq }) => eq(players.id, playerId),
+        with: {
+          playerHands: {
+            where: (playerHands, { eq }) => eq(playerHands.cardId, cardId),
+          },
+        },
+      },
+    },
+  });
+
+  if (!game) {
+    throw new Error("Game not found");
+  }
+
+  // update the game state
+  await db
+    .update(games)
+    .set({
+      topCardId: cardId,
+    })
+    .where(eq(games.id, gameId));
+
+  // remove the card from the player's hand
+  await db.delete(playerHands).where(eq(playerHands.cardId, cardId));
+
+  // change the current turn
+  const currentPlayer = game.players[0];
+  if (!currentPlayer) throw new Error("Player not found");
+
+  const nextPlayerIndex = (currentPlayer.turnOrder % game.players.length) + 1;
+  const nextPlayer = game.players.find((p) => p.turnOrder === nextPlayerIndex);
+  if (!nextPlayer) throw new Error("Next player not found");
+
+  await db
+    .update(games)
+    .set({ currentTurn: nextPlayer.userId })
+    .where(eq(games.id, gameId));
+
+  redirect(`/game/${gameId}`);
+}

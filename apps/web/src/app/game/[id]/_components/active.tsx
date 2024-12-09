@@ -6,6 +6,7 @@ import { GameChat } from "./game-chat";
 import { UnoCard } from "./uno-card";
 import { Players } from "./players";
 import { Draw } from "./draw";
+import { Play } from "./play";
 
 export async function Active({ gameId }: { gameId: number }) {
   const currentUser = await getCurrentUser();
@@ -70,7 +71,7 @@ export async function Active({ gameId }: { gameId: number }) {
                   key={card.id}
                   className="cursor-pointer transition-transform hover:scale-105"
                 >
-                  <UnoCard card={card} />
+                  <Play card={card} gameId={gameId} playerId={player.id} />
                 </div>
               ))}
             </div>
