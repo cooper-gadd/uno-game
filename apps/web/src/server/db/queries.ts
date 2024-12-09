@@ -81,48 +81,50 @@ export async function register({
     timestamp: Date;
   };
 }) {
-  registerSchema.parse(createUser);
+  await db.transaction(async (tx) => {
+    registerSchema.parse(createUser);
 
-  const header = await headers();
-  const ip =
-    (header.get("x-forwarded-for") ?? "127.0.0.1").split(",")[0] ?? "unknown";
-  const browser = header.get("user-agent") ?? "unknown";
-  const timestamp = new Date();
+    const header = await headers();
+    const ip =
+      (header.get("x-forwarded-for") ?? "127.0.0.1").split(",")[0] ?? "unknown";
+    const browser = header.get("user-agent") ?? "unknown";
+    const timestamp = new Date();
 
-  if (
-    nonce.ip !== ip ||
-    nonce.browser !== browser ||
-    nonce.timestamp.getTime() + 1000 * 60 * 5 < timestamp.getTime() // 5 minutes
-  ) {
-    throw new Error("Invalid nonce");
-  }
+    if (
+      nonce.ip !== ip ||
+      nonce.browser !== browser ||
+      nonce.timestamp.getTime() + 1000 * 60 * 5 < timestamp.getTime()
+    ) {
+      throw new Error("Invalid nonce");
+    }
 
-  const existingUser = await db.query.users.findFirst({
-    where: (users, { eq }) => eq(users.username, createUser.username),
-  });
+    const existingUser = await tx.query.users.findFirst({
+      where: (users, { eq }) => eq(users.username, createUser.username),
+    });
 
-  if (existingUser) {
-    throw new Error("Username already exists");
-  }
+    if (existingUser) {
+      throw new Error("Username already exists");
+    }
 
-  const hashedPassword = await bcrypt.hash(
-    createUser.password,
-    Number(env.SALT_ROUNDS),
-  );
+    const hashedPassword = await bcrypt.hash(
+      createUser.password,
+      Number(env.SALT_ROUNDS),
+    );
 
-  const [user] = await db
-    .insert(users)
-    .values({
-      ...createUser,
-      password: hashedPassword,
-    })
-    .returning();
+    const [user] = await tx
+      .insert(users)
+      .values({
+        ...createUser,
+        password: hashedPassword,
+      })
+      .returning();
 
-  if (!user) throw new Error("Failed to create user");
+    if (!user) throw new Error("Failed to create user");
 
-  await login({
-    username: user.username,
-    password: createUser.password, // password is not hashed
+    await login({
+      username: user.username,
+      password: createUser.password,
+    });
   });
 }
 
@@ -227,56 +229,58 @@ export async function createChat(createChat: Pick<CreateChat, "message">) {
 }
 
 export async function startGame(gameId: number) {
-  const game = await db.query.games.findFirst({
-    where: (games, { eq }) => eq(games.id, gameId),
-    with: {
-      players: true,
-    },
+  await db.transaction(async (tx) => {
+    const game = await tx.query.games.findFirst({
+      where: (games, { eq }) => eq(games.id, gameId),
+      with: {
+        players: true,
+      },
+    });
+
+    if (!game) {
+      throw new Error("Game not found");
+    }
+
+    if (game.players.length < 2) {
+      throw new Error("Game must have at least 2 players");
+    }
+
+    const cards = await tx.query.cards.findMany();
+    const deck = cards.sort(() => Math.random() - 0.5);
+
+    for (const player of game.players) {
+      const playerCards = deck.splice(0, 7);
+      await tx.insert(playerHands).values(
+        playerCards.map((card) => ({
+          playerId: player.id,
+          cardId: card.id,
+        })),
+      );
+    }
+
+    const firstCard = deck.find((card) => !card.type.includes("wild"));
+
+    if (!firstCard) {
+      throw new Error("No valid first card found");
+    }
+
+    const firstPlayer = game.players[0];
+
+    if (!firstPlayer) {
+      throw new Error("No first player found");
+    }
+
+    await tx
+      .update(games)
+      .set({
+        status: "active",
+        topCardId: firstCard.id,
+        currentTurn: firstPlayer.userId,
+      })
+      .where(eq(games.id, gameId));
+
+    revalidatePath(`/game/${gameId}`);
   });
-
-  if (!game) {
-    throw new Error("Game not found");
-  }
-
-  if (game.players.length < 2) {
-    throw new Error("Game must have at least 2 players");
-  }
-
-  const cards = await db.query.cards.findMany();
-  const deck = cards.sort(() => Math.random() - 0.5);
-
-  for (const player of game.players) {
-    const playerCards = deck.splice(0, 7);
-    await db.insert(playerHands).values(
-      playerCards.map((card) => ({
-        playerId: player.id,
-        cardId: card.id,
-      })),
-    );
-  }
-
-  const firstCard = deck.find((card) => !card.type.includes("wild"));
-
-  if (!firstCard) {
-    throw new Error("No valid first card found");
-  }
-
-  const firstPlayer = game.players[0];
-
-  if (!firstPlayer) {
-    throw new Error("No first player found");
-  }
-
-  await db
-    .update(games)
-    .set({
-      status: "active",
-      topCardId: firstCard.id,
-      currentTurn: firstPlayer.userId,
-    })
-    .where(eq(games.id, gameId));
-
-  revalidatePath(`/game/${gameId}`);
 }
 
 export async function createGameChat({
@@ -377,205 +381,205 @@ export async function playCard({
   cardId: number;
   selectedColor?: "red" | "green" | "blue" | "yellow";
 }) {
-  const game = await db.query.games.findFirst({
-    where: (games, { eq }) => eq(games.id, gameId),
-    with: {
-      players: {
-        orderBy: (players, { asc }) => [asc(players.turnOrder)],
-        with: {
-          playerHands: {
-            where: (playerHands, { eq }) => eq(playerHands.cardId, cardId),
+  await db.transaction(async (tx) => {
+    const game = await tx.query.games.findFirst({
+      where: (games, { eq }) => eq(games.id, gameId),
+      with: {
+        players: {
+          orderBy: (players, { asc }) => [asc(players.turnOrder)],
+          with: {
+            playerHands: {
+              where: (playerHands, { eq }) => eq(playerHands.cardId, cardId),
+            },
           },
         },
       },
-    },
-  });
-
-  if (!game) {
-    throw new Error("Game not found");
-  }
-
-  if (!game.topCardId) {
-    throw new Error("No top card found");
-  }
-
-  const topCard = await db.query.cards.findFirst({
-    where: (cards, { eq }) => eq(cards.id, game.topCardId!),
-  });
-
-  if (!topCard) {
-    throw new Error("Top card not found");
-  }
-
-  const card = await db.query.cards.findFirst({
-    where: (cards, { eq }) => eq(cards.id, cardId),
-  });
-
-  if (!card) {
-    throw new Error("Card not found");
-  }
-
-  if (card.color === "wild" || card.type === "wild_draw_four") {
-    if (!selectedColor) {
-      throw new Error("Must select a color for wild card");
-    }
-
-    const colorCard = await db.query.cards.findFirst({
-      where: (cards, { and, eq }) =>
-        and(
-          eq(cards.color, selectedColor),
-          eq(cards.type, "number"),
-          eq(cards.value, 1),
-        ),
     });
 
-    if (!colorCard) {
-      throw new Error(`No ${selectedColor} cards available`);
+    if (!game) {
+      throw new Error("Game not found");
     }
 
-    await db
-      .update(games)
-      .set({ topCardId: colorCard.id })
-      .where(eq(games.id, gameId));
-  } else {
-    if (
-      card.type === "number" &&
-      topCard.color !== card.color &&
-      topCard.value !== card.value
-    ) {
-      throw new Error("Invalid play.");
+    if (!game.topCardId) {
+      throw new Error("No top card found");
     }
 
-    if (
-      ["draw_two", "skip", "reverse"].includes(card.type) &&
-      topCard.color !== card.color &&
-      topCard.type !== card.type
-    ) {
-      throw new Error("Invalid play.");
+    const topCard = await tx.query.cards.findFirst({
+      where: (cards, { eq }) => eq(cards.id, game.topCardId!),
+    });
+
+    if (!topCard) {
+      throw new Error("Top card not found");
     }
 
-    await db
-      .update(games)
-      .set({ topCardId: cardId })
-      .where(eq(games.id, gameId));
-  }
+    const card = await tx.query.cards.findFirst({
+      where: (cards, { eq }) => eq(cards.id, cardId),
+    });
 
-  await db.delete(playerHands).where(eq(playerHands.cardId, cardId));
+    if (!card) {
+      throw new Error("Card not found");
+    }
 
-  const currentPlayer = game.players.find((p) => p.id === playerId);
-  if (!currentPlayer) throw new Error("Player not found");
+    if (card.color === "wild" || card.type === "wild_draw_four") {
+      if (!selectedColor) {
+        throw new Error("Must select a color for wild card");
+      }
 
-  let direction = game.direction;
-  let nextPlayerTurnOrder;
+      const colorCard = await tx.query.cards.findFirst({
+        where: (cards, { and, eq }) =>
+          and(
+            eq(cards.color, selectedColor),
+            eq(cards.type, "number"),
+            eq(cards.value, 1),
+          ),
+      });
 
-  if (card.type === "reverse") {
-    direction =
-      game.direction === "clockwise" ? "counter_clockwise" : "clockwise";
+      if (!colorCard) {
+        throw new Error(`No ${selectedColor} cards available`);
+      }
 
-    if (game.players.length === 2) {
-      // with 2 players, reverse acts like a skip
-      nextPlayerTurnOrder = currentPlayer.turnOrder;
+      await tx
+        .update(games)
+        .set({ topCardId: colorCard.id })
+        .where(eq(games.id, gameId));
     } else {
-      nextPlayerTurnOrder =
-        direction === "clockwise"
-          ? currentPlayer.turnOrder === 1
-            ? game.players.length
-            : currentPlayer.turnOrder - 1
-          : currentPlayer.turnOrder === game.players.length
-            ? 1
-            : currentPlayer.turnOrder + 1;
+      if (
+        card.type === "number" &&
+        topCard.color !== card.color &&
+        topCard.value !== card.value
+      ) {
+        throw new Error("Invalid play.");
+      }
+
+      if (
+        ["draw_two", "skip", "reverse"].includes(card.type) &&
+        topCard.color !== card.color &&
+        topCard.type !== card.type
+      ) {
+        throw new Error("Invalid play.");
+      }
+
+      await tx
+        .update(games)
+        .set({ topCardId: cardId })
+        .where(eq(games.id, gameId));
     }
-  } else if (card.type === "skip") {
-    if (game.players.length === 2) {
-      // with 2 players, skip makes it your turn again
-      nextPlayerTurnOrder = currentPlayer.turnOrder;
+
+    await tx.delete(playerHands).where(eq(playerHands.cardId, cardId));
+
+    const currentPlayer = game.players.find((p) => p.id === playerId);
+    if (!currentPlayer) throw new Error("Player not found");
+
+    let direction = game.direction;
+    let nextPlayerTurnOrder;
+
+    if (card.type === "reverse") {
+      direction =
+        game.direction === "clockwise" ? "counter_clockwise" : "clockwise";
+
+      if (game.players.length === 2) {
+        nextPlayerTurnOrder = currentPlayer.turnOrder;
+      } else {
+        nextPlayerTurnOrder =
+          direction === "clockwise"
+            ? currentPlayer.turnOrder === 1
+              ? game.players.length
+              : currentPlayer.turnOrder - 1
+            : currentPlayer.turnOrder === game.players.length
+              ? 1
+              : currentPlayer.turnOrder + 1;
+      }
+    } else if (card.type === "skip") {
+      if (game.players.length === 2) {
+        nextPlayerTurnOrder = currentPlayer.turnOrder;
+      } else {
+        nextPlayerTurnOrder =
+          direction === "clockwise"
+            ? currentPlayer.turnOrder === game.players.length
+              ? 2
+              : currentPlayer.turnOrder + 2 > game.players.length
+                ? 1
+                : currentPlayer.turnOrder + 2
+            : currentPlayer.turnOrder <= 2
+              ? currentPlayer.turnOrder === 1
+                ? game.players.length - 1
+                : game.players.length
+              : currentPlayer.turnOrder - 2;
+      }
+    } else if (card.type === "draw_two" || card.type === "wild_draw_four") {
+      const nextPlayerToDraw =
+        direction === "clockwise"
+          ? currentPlayer.turnOrder === game.players.length
+            ? game.players.find((p) => p.turnOrder === 1)
+            : game.players.find(
+                (p) => p.turnOrder === currentPlayer.turnOrder + 1,
+              )
+          : currentPlayer.turnOrder === 1
+            ? game.players.find((p) => p.turnOrder === game.players.length)
+            : game.players.find(
+                (p) => p.turnOrder === currentPlayer.turnOrder - 1,
+              );
+
+      if (!nextPlayerToDraw) throw new Error("Next player not found");
+
+      if (card.type === "draw_two") {
+        await drawCard({ gameId, playerId: nextPlayerToDraw.id });
+        await drawCard({ gameId, playerId: nextPlayerToDraw.id });
+      } else {
+        for (let i = 0; i < 4; i++) {
+          await drawCard({ gameId, playerId: nextPlayerToDraw.id });
+        }
+      }
+
+      if (game.players.length === 2) {
+        nextPlayerTurnOrder = currentPlayer.turnOrder;
+      } else {
+        nextPlayerTurnOrder =
+          direction === "clockwise"
+            ? nextPlayerToDraw.turnOrder === game.players.length
+              ? 1
+              : nextPlayerToDraw.turnOrder + 1
+            : nextPlayerToDraw.turnOrder === 1
+              ? game.players.length
+              : nextPlayerToDraw.turnOrder - 1;
+      }
     } else {
       nextPlayerTurnOrder =
         direction === "clockwise"
           ? currentPlayer.turnOrder === game.players.length
-            ? 2
-            : currentPlayer.turnOrder + 2 > game.players.length
-              ? 1
-              : currentPlayer.turnOrder + 2
-          : currentPlayer.turnOrder <= 2
-            ? currentPlayer.turnOrder === 1
-              ? game.players.length - 1
-              : game.players.length
-            : currentPlayer.turnOrder - 2;
-    }
-  } else if (card.type === "draw_two" || card.type === "wild_draw_four") {
-    const nextPlayerToDraw =
-      direction === "clockwise"
-        ? currentPlayer.turnOrder === game.players.length
-          ? game.players.find((p) => p.turnOrder === 1)
-          : game.players.find(
-              (p) => p.turnOrder === currentPlayer.turnOrder + 1,
-            )
-        : currentPlayer.turnOrder === 1
-          ? game.players.find((p) => p.turnOrder === game.players.length)
-          : game.players.find(
-              (p) => p.turnOrder === currentPlayer.turnOrder - 1,
-            );
-
-    if (!nextPlayerToDraw) throw new Error("Next player not found");
-
-    if (card.type === "draw_two") {
-      await drawCard({ gameId, playerId: nextPlayerToDraw.id });
-      await drawCard({ gameId, playerId: nextPlayerToDraw.id });
-    } else {
-      for (let i = 0; i < 4; i++) {
-        await drawCard({ gameId, playerId: nextPlayerToDraw.id });
-      }
-    }
-
-    if (game.players.length === 2) {
-      nextPlayerTurnOrder = currentPlayer.turnOrder;
-    } else {
-      nextPlayerTurnOrder =
-        direction === "clockwise"
-          ? nextPlayerToDraw.turnOrder === game.players.length
             ? 1
-            : nextPlayerToDraw.turnOrder + 1
-          : nextPlayerToDraw.turnOrder === 1
+            : currentPlayer.turnOrder + 1
+          : currentPlayer.turnOrder === 1
             ? game.players.length
-            : nextPlayerToDraw.turnOrder - 1;
+            : currentPlayer.turnOrder - 1;
     }
-  } else {
-    nextPlayerTurnOrder =
-      direction === "clockwise"
-        ? currentPlayer.turnOrder === game.players.length
-          ? 1
-          : currentPlayer.turnOrder + 1
-        : currentPlayer.turnOrder === 1
-          ? game.players.length
-          : currentPlayer.turnOrder - 1;
-  }
 
-  const nextPlayer = game.players.find(
-    (p) => p.turnOrder === nextPlayerTurnOrder,
-  );
-  if (!nextPlayer) throw new Error("Next player not found");
+    const nextPlayer = game.players.find(
+      (p) => p.turnOrder === nextPlayerTurnOrder,
+    );
+    if (!nextPlayer) throw new Error("Next player not found");
 
-  await db
-    .update(games)
-    .set({
-      currentTurn: nextPlayer.userId,
-      direction,
-    })
-    .where(eq(games.id, gameId));
-
-  const currentPlayerHands = await db.query.playerHands.findMany({
-    where: (playerHands, { eq }) => eq(playerHands.playerId, playerId),
-  });
-
-  if (currentPlayerHands.length === 0) {
-    await db
+    await tx
       .update(games)
-      .set({ status: "finished" })
+      .set({
+        currentTurn: nextPlayer.userId,
+        direction,
+      })
       .where(eq(games.id, gameId));
-  }
 
-  revalidatePath(`/game/${gameId}`);
+    const currentPlayerHands = await tx.query.playerHands.findMany({
+      where: (playerHands, { eq }) => eq(playerHands.playerId, playerId),
+    });
+
+    if (currentPlayerHands.length === 0) {
+      await tx
+        .update(games)
+        .set({ status: "finished" })
+        .where(eq(games.id, gameId));
+    }
+
+    revalidatePath(`/game/${gameId}`);
+  });
 }
 
 export async function callUno({
