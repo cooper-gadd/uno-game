@@ -11,7 +11,7 @@ import { Play } from "./play";
 export async function Active({ gameId }: { gameId: number }) {
   const currentUser = await getCurrentUser();
 
-  const gameState = await db.query.games.findFirst({
+  const game = await db.query.games.findFirst({
     columns: {
       name: true,
       currentTurn: true,
@@ -32,24 +32,22 @@ export async function Active({ gameId }: { gameId: number }) {
     },
   });
 
-  if (!gameState?.players[0]) {
+  if (!game?.players[0]) {
     redirect("/lobby");
   }
 
-  if (!gameState.currentTurn) {
+  if (!game.currentTurn) {
     throw new Error("Current turn not found");
   }
 
-  const player = gameState.players[0];
+  const player = game.players[0];
   const playerCards = player.playerHands;
 
   return (
     <div className="flex-1 flex-col space-y-6 p-4 md:flex">
       <div className="flex flex-col items-start justify-between space-y-2 md:flex-row md:items-center">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">
-            {gameState.name}
-          </h2>
+          <h2 className="text-2xl font-bold tracking-tight">{game.name}</h2>
           <p className="text-muted-foreground">
             Have fun playing Uno with your friends!
           </p>
@@ -62,8 +60,13 @@ export async function Active({ gameId }: { gameId: number }) {
         <CardContent>
           <div className="space-y-6">
             <div className="flex items-center justify-center gap-2">
-              <UnoCard card={gameState.card!} />
-              <Draw gameId={gameId} playerId={player.id} />
+              <UnoCard card={game.card!} />
+              <Draw
+                gameId={gameId}
+                playerId={player.id}
+                currentTurn={game.currentTurn}
+                userId={currentUser.id}
+              />
             </div>
             <div className="flex w-full flex-wrap justify-center gap-4">
               {playerCards.map(({ card }) => (
@@ -71,7 +74,13 @@ export async function Active({ gameId }: { gameId: number }) {
                   key={card.id}
                   className="cursor-pointer transition-transform hover:scale-105"
                 >
-                  <Play card={card} gameId={gameId} playerId={player.id} />
+                  <Play
+                    card={card}
+                    gameId={gameId}
+                    playerId={player.id}
+                    currentTurn={game.currentTurn!}
+                    userId={currentUser.id}
+                  />
                 </div>
               ))}
             </div>
@@ -92,7 +101,7 @@ export async function Active({ gameId }: { gameId: number }) {
             <CardTitle>Players</CardTitle>
           </CardHeader>
           <CardContent>
-            <Players gameId={gameId} currentTurn={gameState.currentTurn} />
+            <Players gameId={gameId} currentTurn={game.currentTurn} />
           </CardContent>
         </Card>
       </div>
