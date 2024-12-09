@@ -1,10 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { type Card } from "@/server/db/schema";
 import { UnoCard } from "./uno-card";
 import { playCard } from "@/server/db/queries";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ColorPickerDialog } from "./color-picker-dialog";
+
+type Color = "red" | "green" | "blue" | "yellow";
 
 export function Play({
   gameId,
@@ -19,31 +23,55 @@ export function Play({
   currentTurn: number;
   userId: number;
 }) {
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const isPlayerTurn = currentTurn === userId;
 
-  return (
-    <div
-      onClick={async () => {
-        if (!isPlayerTurn) return;
+  const handlePlay = async (selectedColor?: Color) => {
+    if (!isPlayerTurn) return;
 
-        try {
-          await playCard({
-            gameId,
-            playerId,
-            cardId: card.id,
-          });
-        } catch (error) {
-          toast.error((error as Error).message);
-        }
-      }}
-      className={cn(
-        "transition-all",
-        isPlayerTurn
-          ? "cursor-pointer hover:scale-105"
-          : "cursor-not-allowed opacity-50",
-      )}
-    >
-      <UnoCard card={card} />
-    </div>
+    try {
+      if (
+        (card.color === "wild" || card.type === "wild_draw_four") &&
+        !selectedColor
+      ) {
+        setShowColorPicker(true);
+        return;
+      }
+
+      await playCard({
+        gameId,
+        playerId,
+        cardId: card.id,
+        selectedColor,
+      });
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
+  };
+
+  const handleColorSelect = async (color: Color) => {
+    setShowColorPicker(false);
+    await handlePlay(color);
+  };
+
+  return (
+    <>
+      <div
+        onClick={() => handlePlay()}
+        className={cn(
+          "transition-all",
+          isPlayerTurn
+            ? "cursor-pointer hover:scale-105"
+            : "cursor-not-allowed opacity-50",
+        )}
+      >
+        <UnoCard card={card} />
+      </div>
+
+      <ColorPickerDialog
+        open={showColorPicker}
+        onColorSelectAction={handleColorSelect}
+      />
+    </>
   );
 }

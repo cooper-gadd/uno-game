@@ -355,10 +355,12 @@ export async function playCard({
   gameId,
   playerId,
   cardId,
+  selectedColor,
 }: {
   gameId: number;
   playerId: number;
   cardId: number;
+  selectedColor?: "red" | "green" | "blue" | "yellow";
 }) {
   const game = await db.query.games.findFirst({
     where: (games, { eq }) => eq(games.id, gameId),
@@ -399,29 +401,49 @@ export async function playCard({
   }
 
   if (card.color === "wild" || card.type === "wild_draw_four") {
-    // TODO: handle color selection
-  } else if (card.type === "number") {
-    if (topCard.color !== card.color && topCard.value !== card.value) {
-      throw new Error("Invalid play.");
+    if (!selectedColor) {
+      throw new Error("Must select a color for wild card");
     }
-  } else if (
-    card.type === "draw_two" ||
-    card.type === "skip" ||
-    card.type === "reverse"
-  ) {
-    if (topCard.color !== card.color && topCard.type !== card.type) {
-      throw new Error("Invalid play.");
-    }
-  } else {
-    throw new Error("Invalid card type.");
-  }
 
-  await db
-    .update(games)
-    .set({
-      topCardId: cardId,
-    })
-    .where(eq(games.id, gameId));
+    const colorCard = await db.query.cards.findFirst({
+      where: (cards, { and, eq }) =>
+        and(
+          eq(cards.color, selectedColor),
+          eq(cards.type, "number"),
+          eq(cards.value, 1),
+        ),
+    });
+
+    if (!colorCard) {
+      throw new Error(`No ${selectedColor} cards available`);
+    }
+
+    await db
+      .update(games)
+      .set({ topCardId: colorCard.id })
+      .where(eq(games.id, gameId));
+  } else {
+    if (
+      card.type === "number" &&
+      topCard.color !== card.color &&
+      topCard.value !== card.value
+    ) {
+      throw new Error("Invalid play.");
+    }
+
+    if (
+      ["draw_two", "skip", "reverse"].includes(card.type) &&
+      topCard.color !== card.color &&
+      topCard.type !== card.type
+    ) {
+      throw new Error("Invalid play.");
+    }
+
+    await db
+      .update(games)
+      .set({ topCardId: cardId })
+      .where(eq(games.id, gameId));
+  }
 
   await db.delete(playerHands).where(eq(playerHands.cardId, cardId));
 

@@ -26,6 +26,7 @@ export async function Active({ gameId }: { gameId: number }) {
             with: {
               card: true,
             },
+            orderBy: (card, { asc }) => [asc(card.cardId)],
           },
         },
       },
