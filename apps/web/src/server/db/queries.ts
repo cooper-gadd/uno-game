@@ -403,9 +403,10 @@ export async function playCard({
     throw new Error("Card not found");
   }
 
-  if (card.type.includes("wild")) {
-    // TODO: handle color selection
-  } else if (topCard.color !== card.color || topCard.type !== card.type) {
+  if (
+    !card.type.includes("wild") &&
+    (topCard.color !== card.color || topCard.type !== card.type)
+  ) {
     throw new Error("You can't play that card.");
   }
 
