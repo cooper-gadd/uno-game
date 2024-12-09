@@ -9,7 +9,6 @@
 - [ ] Define the game state structure
   - [ ] Direction, game status
 - [ ] Implement card mechanics
-  - [ ] Playing cards (matching by color, number, or symbol)
   - [ ] Handle action card effects (skip, reverse, draw two, wild, etc.)
 - [ ] Implement turn management
   - [ ] Handle direction changes
