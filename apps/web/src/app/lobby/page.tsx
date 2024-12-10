@@ -21,8 +21,8 @@ export default async function Page() {
         <GameForm />
       </div>
       <Games lobbyGames={lobbyGames} />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
           <CardHeader>
             <CardTitle>Lobby Chat</CardTitle>
           </CardHeader>
@@ -30,7 +30,7 @@ export default async function Page() {
             <Chat />
           </CardContent>
         </Card>
-        <Card className="col-span-3">
+        <Card>
           <CardHeader>
             <CardTitle>Active Users</CardTitle>
           </CardHeader>
