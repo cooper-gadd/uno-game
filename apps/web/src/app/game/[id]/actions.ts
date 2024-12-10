@@ -65,6 +65,12 @@ export async function startGame(gameId: number) {
       })
       .where(eq(games.id, gameId));
 
+    try {
+      await notifyGameUpdate(gameId);
+    } catch (error) {
+      console.error("Failed to notify game update:", error);
+    }
+
     revalidatePath(`/game/${gameId}`);
   });
 }
@@ -153,6 +159,12 @@ export async function drawCard({
       playerId,
       cardId: drawnCard.id,
     });
+
+    try {
+      await notifyGameUpdate(gameId);
+    } catch (error) {
+      console.error("Failed to notify game update:", error);
+    }
 
     revalidatePath(`/game/${gameId}`);
   });
@@ -366,6 +378,12 @@ export async function playCard({
         .where(eq(games.id, gameId));
     }
 
+    try {
+      await notifyGameUpdate(gameId);
+    } catch (error) {
+      console.error("Failed to notify game update:", error);
+    }
+
     revalidatePath(`/game/${gameId}`);
   });
 }
@@ -415,6 +433,12 @@ export async function callUno({
       await drawCard({ gameId, playerId });
       await drawCard({ gameId, playerId });
     }
+  }
+
+  try {
+    await notifyGameUpdate(gameId);
+  } catch (error) {
+    console.error("Failed to notify game update:", error);
   }
 
   revalidatePath(`/game/${gameId}`);
@@ -471,3 +495,27 @@ export async function getGame({ gameId }: { gameId: number }) {
 
   return game;
 }
+
+async function notifyGameUpdate(gameId: number) {
+  const ws = new WebSocket(`ws://localhost:8080/game-update?gameId=${gameId}`);
+
+  return new Promise<void>((resolve, reject) => {
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ gameId: gameId.toString() }));
+      ws.close();
+      resolve();
+    };
+
+    ws.onerror = (event: Event) => {
+      ws.close();
+      reject(new Error("WebSocket error occurred: " + JSON.stringify(event)));
+    };
+
+    setTimeout(() => {
+      ws.close();
+      reject(new Error("WebSocket connection timeout"));
+    }, 5000);
+  });
+}
+
+export { notifyGameUpdate };
