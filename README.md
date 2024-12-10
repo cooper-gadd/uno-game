@@ -28,7 +28,3 @@
   - [ ] In-game chat and game conclusion
 - [ ] Rehearse the presentation to fit within the 10-minute limit
 - [ ] Anticipate possible questions and prepare responses
-
-## **Potential Enhancements (Optional for Extra Credit)**
-
-- [ ] Game statistics or leaderboards
