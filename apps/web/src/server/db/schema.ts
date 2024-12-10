@@ -136,7 +136,6 @@ export const games = createTable("game", {
       onUpdate: "cascade",
     })
     .default(1),
-  endedAt: timestamp("ended_at"),
   direction: gameDirection("direction").default("clockwise").notNull(),
   status: gameStatus("status").default("waiting").notNull(),
   currentTurn: integer("current_turn"),
