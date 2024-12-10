@@ -9,7 +9,7 @@ export const gameSchema = z.object({
     .number()
     .int()
     .min(2, { message: "Must have at least 2 players" })
-    .max(4, { message: "Must have at most 4 players" }),
+    .max(16, { message: "Must have at most 16 players" }),
 });
 
 export const chatSchema = z.object({
