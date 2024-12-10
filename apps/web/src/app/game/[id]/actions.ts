@@ -513,7 +513,7 @@ export async function endGame({ gameId }: { gameId: number }) {
 
 async function notifyGameUpdate(gameId: number) {
   const ws = new WebSocket(
-    `ws://${env.WEBSOCKET_URL ?? "localhost:8080"}/game-update?gameId=${gameId}`,
+    `${(env.WEBSOCKET_URL ?? "localhost:8080").includes("localhost") ? "ws://" : "wss://"}${env.WEBSOCKET_URL ?? "localhost:8080"}/game-update?gameId=${gameId}`,
   );
 
   return new Promise<void>((resolve, reject) => {

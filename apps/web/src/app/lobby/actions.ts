@@ -190,7 +190,7 @@ export async function getLobbyUsers() {
 
 async function notifyLobbyUpdate() {
   const ws = new WebSocket(
-    `ws://${env.WEBSOCKET_URL ?? "localhost:8080"}/lobby-update`,
+    `${(env.WEBSOCKET_URL ?? "localhost:8080").includes("localhost") ? "ws://" : "wss://"}${env.WEBSOCKET_URL ?? "localhost:8080"}/lobby-update`,
   );
 
   return new Promise<void>((resolve, reject) => {

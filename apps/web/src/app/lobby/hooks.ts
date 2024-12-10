@@ -16,7 +16,7 @@ export function useChat() {
   useEffect(() => {
     const connect = () => {
       ws.current = createWebSocketConnection(
-        `ws://${env.NEXT_PUBLIC_WEBSOCKET_URL ?? "localhost:8080"}/lobby-chat`,
+        `${(env.NEXT_PUBLIC_WEBSOCKET_URL ?? "localhost:8080").includes("localhost") ? "ws://" : "wss://"}${env.NEXT_PUBLIC_WEBSOCKET_URL ?? "localhost:8080"}/lobby-chat`,
         (event: MessageEvent) => {
           try {
             const chat = JSON.parse(event.data as string) as Chat;
@@ -58,7 +58,7 @@ export function useLobbyUpdates() {
   useEffect(() => {
     const connect = () => {
       ws.current = createWebSocketConnection(
-        `ws://${env.NEXT_PUBLIC_WEBSOCKET_URL ?? "localhost:8080"}/lobby-update`,
+        `${(env.NEXT_PUBLIC_WEBSOCKET_URL ?? "localhost:8080").includes("localhost") ? "ws://" : "wss://"}${env.NEXT_PUBLIC_WEBSOCKET_URL ?? "localhost:8080"}/lobby-update`,
         () => {
           router.refresh();
         },
