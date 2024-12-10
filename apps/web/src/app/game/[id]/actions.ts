@@ -282,12 +282,12 @@ export async function playCard({
       } else {
         nextPlayerTurnOrder =
           direction === "clockwise"
-            ? currentPlayer.turnOrder === 1
-              ? game.players.length
-              : currentPlayer.turnOrder - 1
-            : currentPlayer.turnOrder === game.players.length
+            ? currentPlayer.turnOrder === game.players.length
               ? 1
-              : currentPlayer.turnOrder + 1;
+              : currentPlayer.turnOrder + 1
+            : currentPlayer.turnOrder === 1
+              ? game.players.length
+              : currentPlayer.turnOrder - 1;
       }
     } else if (card.type === "skip") {
       if (game.players.length === 2) {
