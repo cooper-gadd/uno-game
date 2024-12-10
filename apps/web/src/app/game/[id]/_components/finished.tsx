@@ -9,10 +9,6 @@ export async function Finished({
 }) {
   const winner = game.players.find((player) => player.playerHands.length === 0);
 
-  if (!winner) {
-    return null;
-  }
-
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="space-y-4 text-center">
@@ -20,7 +16,9 @@ export async function Finished({
           {game.name}
         </h1>
         <p className="text-xl text-muted-foreground">
-          {winner.user.name} has won the game!
+          {winner
+            ? `${winner.user.name} has won the game!`
+            : "The game has ended."}
         </p>
         <Button asChild>
           <Link href="/lobby">Return to Lobby</Link>

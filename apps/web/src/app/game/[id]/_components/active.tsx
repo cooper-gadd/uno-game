@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/server/db/context";
 import { redirect } from "next/navigation";
 import { type getGame } from "../actions";
 import { Draw } from "./draw";
+import { EndGame } from "./end-game";
 import { GameChat } from "./game-chat";
 import { Play } from "./play";
 import { Players } from "./players";
@@ -36,6 +37,7 @@ export async function Active({
             Have fun playing Uno with your friends!
           </p>
         </div>
+        <EndGame gameId={game.id} />
       </div>
       <Card>
         <CardHeader>

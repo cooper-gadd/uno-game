@@ -497,6 +497,19 @@ export async function getGame({ gameId }: { gameId: number }) {
   return game;
 }
 
+export async function endGame({ gameId }: { gameId: number }) {
+  await db
+    .update(games)
+    .set({ status: "finished" })
+    .where(eq(games.id, gameId));
+
+  try {
+    await notifyGameUpdate(gameId);
+  } catch (error) {
+    console.error("Failed to notify game update:", error);
+  }
+}
+
 async function notifyGameUpdate(gameId: number) {
   const ws = new WebSocket(`ws://localhost:8080/game-update?gameId=${gameId}`);
 
@@ -518,5 +531,3 @@ async function notifyGameUpdate(gameId: number) {
     }, 5000);
   });
 }
-
-export { notifyGameUpdate };
