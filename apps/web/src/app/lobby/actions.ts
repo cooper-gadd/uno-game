@@ -95,12 +95,15 @@ export async function createChat(createChat: Pick<CreateChat, "message">) {
 }
 
 export async function getLobbyGames() {
+  const currentUser = await getCurrentUser();
+
   return await db.query.games.findMany({
     columns: {
       id: true,
       name: true,
       createdAt: true,
       maxPlayers: true,
+      status: true,
     },
     with: {
       users: {
@@ -119,7 +122,27 @@ export async function getLobbyGames() {
         },
       },
     },
-    where: (games, { eq }) => eq(games.status, "waiting"),
+    where: (games, { or, eq, exists }) =>
+      or(
+        eq(games.status, "waiting"),
+        exists(
+          db
+            .select()
+            .from(players)
+            .where(
+              and(
+                eq(players.gameId, games.id),
+                eq(players.userId, currentUser.id),
+              ),
+            ),
+        ),
+      ),
+    orderBy: (games, { desc, asc }) => [
+      asc(games.status),
+      desc(games.createdAt),
+      asc(games.name),
+      asc(games.id),
+    ],
   });
 }
 
