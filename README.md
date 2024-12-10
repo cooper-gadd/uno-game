@@ -1,5 +1,9 @@
 # Todo
 
+## **Game Mechanics**
+
+- [ ] Players must be able to end the game
+
 ## **Game Board Design**
 
 - [ ] Create reusable SVG components for cards
