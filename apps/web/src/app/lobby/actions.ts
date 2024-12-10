@@ -5,15 +5,17 @@ import { getCurrentUser } from "@/server/db/context";
 import {
   chats,
   games,
+  playerHands,
   players,
   sessions,
+  users,
   type CreateChat,
   type CreateGame,
   type CreatePlayer,
 } from "@/server/db/schema";
-import { chatSchema, gameSchema } from "./schemas";
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, exists, gt, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import { chatSchema, gameSchema } from "./schemas";
 
 export async function createGame(
   createGame: Pick<CreateGame, "name" | "maxPlayers">,
@@ -147,12 +149,29 @@ export async function getLobbyGames() {
 }
 
 export async function getLobbyUsers() {
-  return await db.query.users.findMany({
-    columns: {
-      username: true,
-      name: true,
-    },
-    where: (users, { exists }) =>
+  return await db
+    .select({
+      username: users.username,
+      name: users.name,
+      gamesPlayed: sql<number>`
+      COUNT(DISTINCT ${players.gameId})
+    `.as("games_played"),
+      wins: sql<number>`
+      COUNT(DISTINCT CASE
+        WHEN ${games.status} = 'finished'
+        AND NOT EXISTS (
+          SELECT 1
+          FROM ${playerHands} ph
+          WHERE ph.player_id = ${players.id}
+        )
+        THEN ${games.id}
+      END)
+    `.as("wins"),
+    })
+    .from(users)
+    .leftJoin(players, eq(players.userId, users.id))
+    .leftJoin(games, eq(games.id, players.gameId))
+    .where(
       exists(
         db
           .select()
@@ -164,7 +183,8 @@ export async function getLobbyUsers() {
             ),
           ),
       ),
-  });
+    )
+    .groupBy(users.id, users.username, users.name);
 }
 
 async function notifyLobbyUpdate() {

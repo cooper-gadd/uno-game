@@ -3,8 +3,10 @@
 import { type ColumnDef } from "@tanstack/react-table";
 
 export const columns: ColumnDef<{
-  name: string;
   username: string;
+  name: string;
+  gamesPlayed: number;
+  wins: number;
 }>[] = [
   {
     accessorKey: "name",
@@ -13,5 +15,13 @@ export const columns: ColumnDef<{
   {
     accessorKey: "username",
     header: "Username",
+  },
+  {
+    accessorKey: "gamesPlayed",
+    header: "Games Played",
+  },
+  {
+    accessorKey: "wins",
+    header: "Wins",
   },
 ];
