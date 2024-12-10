@@ -21,7 +21,7 @@ var (
 )
 
 func HandleGameConnections(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgrader.Upgrade(w, r, nil)
+	ws, err := utils.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		utils.LogError("Failed to upgrade game connection", err, "")
 		return
@@ -92,7 +92,7 @@ func HandleGameMessages() {
 }
 
 func HandleGameUpdateConnections(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgrader.Upgrade(w, r, nil)
+	ws, err := utils.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		utils.LogError("Failed to upgrade game update connection", err, "")
 		return

@@ -16,15 +16,10 @@ var (
 	lobbyMutex           sync.RWMutex
 	lobbyBroadcast       = make(chan types.LobbyMessage)
 	lobbyUpdateBroadcast = make(chan types.LobbyUpdate)
-	upgrader             = websocket.Upgrader{
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
-	}
 )
 
 func HandleLobbyConnections(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgrader.Upgrade(w, r, nil)
+	ws, err := utils.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		utils.LogError("Failed to upgrade lobby connection", err, "")
 		return
@@ -86,7 +81,7 @@ func HandleLobbyMessages() {
 }
 
 func HandleLobbyUpdateConnections(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgrader.Upgrade(w, r, nil)
+	ws, err := utils.Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		utils.LogError("Failed to upgrade lobby update connection", err, "")
 		return
