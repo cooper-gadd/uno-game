@@ -9,11 +9,6 @@
 - [ ] Use WebSockets to synchronize game state between players
 - [ ] Send real-time updates for moves made and state changes
 
-## **Security Measures**
-
-- [ ] Validate and sanitize all user inputs on the server side
-- [ ] Use prepared statements with parameterized queries throughout the application
-
 ## **Deployment**
 
 - [ ] Set up the deployment environment on Solace or another server
