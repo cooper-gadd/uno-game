@@ -1,3 +1,4 @@
+import { createWebSocketConnection } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -17,32 +18,28 @@ export function useGameChat(gameId: string) {
   const [chat, setChat] = useState<GameChat[]>([]);
 
   useEffect(() => {
-    ws.current = new WebSocket(
-      `ws://localhost:8080/game-chat?gameId=${gameId}`,
-    );
+    const connect = () => {
+      ws.current = createWebSocketConnection(
+        `ws://localhost:8080/game-chat?gameId=${gameId}`,
+        (event: MessageEvent) => {
+          try {
+            const chat = JSON.parse(event.data as string) as GameChat;
+            if ("name" in chat && "message" in chat && chat.gameId === gameId) {
+              setChat((prev) => [...prev, chat]);
+            }
+          } catch (error) {
+            console.error("Failed to parse chat message:", error);
+          }
+        },
+      );
 
-    ws.current.onopen = () => {
-      console.log("Game Chat WebSocket Connected");
+      ws.current.onclose = () => {
+        console.log("Game Chat WebSocket Disconnected - Reconnecting...");
+        setTimeout(connect, 1000);
+      };
     };
 
-    ws.current.onmessage = (event: MessageEvent) => {
-      try {
-        const chat = JSON.parse(event.data as string) as GameChat;
-        if ("name" in chat && "message" in chat && chat.gameId === gameId) {
-          setChat((prev) => [...prev, chat]);
-        }
-      } catch (error) {
-        console.error("Failed to parse chat message:", error);
-      }
-    };
-
-    ws.current.onclose = () => {
-      console.log("Game Chat WebSocket Disconnected");
-    };
-
-    ws.current.onerror = (error: Event) => {
-      console.error("Game Chat WebSocket error:", error);
-    };
+    connect();
 
     return () => {
       ws.current?.close();
@@ -63,32 +60,28 @@ export function useGameUpdates(gameId: string) {
   const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    ws.current = new WebSocket(
-      `ws://localhost:8080/game-update?gameId=${gameId}`,
-    );
+    const connect = () => {
+      ws.current = createWebSocketConnection(
+        `ws://localhost:8080/game-update?gameId=${gameId}`,
+        (event: MessageEvent) => {
+          try {
+            const update = JSON.parse(event.data as string) as GameUpdate;
+            if (update.gameId === gameId) {
+              router.refresh();
+            }
+          } catch (error) {
+            console.error("Failed to parse game update:", error);
+          }
+        },
+      );
 
-    ws.current.onopen = () => {
-      console.log("Game Update WebSocket Connected");
+      ws.current.onclose = () => {
+        console.log("Game Update WebSocket Disconnected - Reconnecting...");
+        setTimeout(connect, 1000);
+      };
     };
 
-    ws.current.onmessage = (event: MessageEvent) => {
-      try {
-        const update = JSON.parse(event.data as string) as GameUpdate;
-        if (update.gameId === gameId) {
-          router.refresh();
-        }
-      } catch (error) {
-        console.error("Failed to parse game update:", error);
-      }
-    };
-
-    ws.current.onclose = () => {
-      console.log("Game Update WebSocket Disconnected");
-    };
-
-    ws.current.onerror = (error: Event) => {
-      console.error("Game Update WebSocket error:", error);
-    };
+    connect();
 
     return () => {
       ws.current?.close();

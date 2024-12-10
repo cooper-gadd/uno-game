@@ -11,9 +11,9 @@ import {
   type CreateGame,
   type CreatePlayer,
 } from "@/server/db/schema";
-import { redirect } from "next/navigation";
 import { chatSchema, gameSchema } from "./schemas";
 import { and, eq, gt } from "drizzle-orm";
+import { redirect } from "next/navigation";
 
 export async function createGame(
   createGame: Pick<CreateGame, "name" | "maxPlayers">,
@@ -32,9 +32,17 @@ export async function createGame(
 
   if (!game) throw new Error("Failed to create game");
 
+  try {
+    await notifyLobbyUpdate();
+  } catch (error) {
+    console.error("Failed to notify lobby update:", error);
+  }
+
   await createPlayer({
     gameId: game.insertedId,
   });
+
+  redirect(`/game/${game.insertedId}`);
 }
 
 export async function createPlayer(createPlayer: Pick<CreatePlayer, "gameId">) {
@@ -65,6 +73,12 @@ export async function createPlayer(createPlayer: Pick<CreatePlayer, "gameId">) {
     userId: currentUser.id,
     turnOrder: currentPlayers.length + 1,
   });
+
+  try {
+    await notifyLobbyUpdate();
+  } catch (error) {
+    console.error("Failed to notify lobby update:", error);
+  }
 
   redirect(`/game/${createPlayer.gameId}`);
 }
@@ -127,5 +141,27 @@ export async function getLobbyUsers() {
             ),
           ),
       ),
+  });
+}
+
+async function notifyLobbyUpdate() {
+  const ws = new WebSocket(`ws://localhost:8080/lobby-update`);
+
+  return new Promise<void>((resolve, reject) => {
+    ws.onopen = () => {
+      ws.send(JSON.stringify({}));
+      ws.close();
+      resolve();
+    };
+
+    ws.onerror = () => {
+      ws.close();
+      resolve();
+    };
+
+    setTimeout(() => {
+      ws.close();
+      reject(new Error("WebSocket connection timeout"));
+    }, 5000);
   });
 }

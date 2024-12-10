@@ -2,11 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Chat } from "./_components/chat";
 import { GameForm } from "./_components/game-form";
 import { Games } from "./_components/games";
+import { LobbyUpdates } from "./_components/lobby-updates";
 import { Users } from "./_components/users";
 
 export default function Page() {
   return (
     <div className="flex-1 flex-col space-y-6 p-4 md:flex">
+      <LobbyUpdates />
       <div className="flex flex-col items-start justify-between space-y-2 md:flex-row md:items-center">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Welcome back!</h2>
