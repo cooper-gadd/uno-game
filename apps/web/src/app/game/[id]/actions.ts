@@ -447,6 +447,7 @@ export async function callUno({
 export async function getPlayers({ gameId }: { gameId: number }) {
   return await db.query.players.findMany({
     where: (players, { eq }) => eq(players.gameId, gameId),
+    orderBy: (players, { asc }) => [asc(players.turnOrder)],
     with: {
       user: true,
       playerHands: true,
