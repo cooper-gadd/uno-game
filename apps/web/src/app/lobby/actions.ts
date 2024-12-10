@@ -145,6 +145,7 @@ export async function getLobbyGames() {
       asc(games.name),
       asc(games.id),
     ],
+    limit: 4,
   });
 }
 
