@@ -1,3 +1,4 @@
+import { env } from "@/env";
 import { createWebSocketConnection } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -20,7 +21,7 @@ export function useGameChat(gameId: string) {
   useEffect(() => {
     const connect = () => {
       ws.current = createWebSocketConnection(
-        `ws://localhost:8080/game-chat?gameId=${gameId}`,
+        `ws://${env.NEXT_PUBLIC_WEBSOCKET_URL ?? "localhost:8080"}/game-chat?gameId=${gameId}`,
         (event: MessageEvent) => {
           try {
             const chat = JSON.parse(event.data as string) as GameChat;
@@ -62,7 +63,7 @@ export function useGameUpdates(gameId: string) {
   useEffect(() => {
     const connect = () => {
       ws.current = createWebSocketConnection(
-        `ws://localhost:8080/game-update?gameId=${gameId}`,
+        `ws://${env.NEXT_PUBLIC_WEBSOCKET_URL ?? "localhost:8080"}/game-update?gameId=${gameId}`,
         (event: MessageEvent) => {
           try {
             const update = JSON.parse(event.data as string) as GameUpdate;

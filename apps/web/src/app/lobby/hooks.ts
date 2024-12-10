@@ -1,3 +1,4 @@
+import { env } from "@/env";
 import { createWebSocketConnection } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -15,7 +16,7 @@ export function useChat() {
   useEffect(() => {
     const connect = () => {
       ws.current = createWebSocketConnection(
-        "ws://localhost:8080/lobby-chat",
+        `ws://${env.NEXT_PUBLIC_WEBSOCKET_URL ?? "localhost:8080"}/lobby-chat`,
         (event: MessageEvent) => {
           try {
             const chat = JSON.parse(event.data as string) as Chat;
@@ -57,7 +58,7 @@ export function useLobbyUpdates() {
   useEffect(() => {
     const connect = () => {
       ws.current = createWebSocketConnection(
-        "ws://localhost:8080/lobby-update",
+        `ws://${env.NEXT_PUBLIC_WEBSOCKET_URL ?? "localhost:8080"}/lobby-update`,
         () => {
           router.refresh();
         },

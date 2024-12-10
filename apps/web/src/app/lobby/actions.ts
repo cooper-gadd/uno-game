@@ -16,6 +16,7 @@ import {
 import { and, eq, exists, gt, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { chatSchema, gameSchema } from "./schemas";
+import { env } from "@/env";
 
 export async function createGame(
   createGame: Pick<CreateGame, "name" | "maxPlayers">,
@@ -188,7 +189,9 @@ export async function getLobbyUsers() {
 }
 
 async function notifyLobbyUpdate() {
-  const ws = new WebSocket(`ws://localhost:8080/lobby-update`);
+  const ws = new WebSocket(
+    `ws://${env.WEBSOCKET_URL ?? "localhost:8080"}/lobby-update`,
+  );
 
   return new Promise<void>((resolve, reject) => {
     ws.onopen = () => {

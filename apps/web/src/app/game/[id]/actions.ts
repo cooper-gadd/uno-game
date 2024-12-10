@@ -13,6 +13,7 @@ import { revalidatePath } from "next/cache";
 import { gameChatSchema } from "./schemas";
 import { getCurrentUser } from "@/server/db/context";
 import { redirect } from "next/navigation";
+import { env } from "@/env";
 
 export async function startGame(gameId: number) {
   await db.transaction(async (tx) => {
@@ -511,7 +512,9 @@ export async function endGame({ gameId }: { gameId: number }) {
 }
 
 async function notifyGameUpdate(gameId: number) {
-  const ws = new WebSocket(`ws://localhost:8080/game-update?gameId=${gameId}`);
+  const ws = new WebSocket(
+    `ws://${env.WEBSOCKET_URL ?? "localhost:8080"}/game-update?gameId=${gameId}`,
+  );
 
   return new Promise<void>((resolve, reject) => {
     ws.onopen = () => {
