@@ -15,6 +15,7 @@ import { useForm } from "react-hook-form";
 import { type z } from "zod";
 import { register } from "../actions";
 import { registerSchema } from "../schemas";
+import { toast } from "sonner";
 
 export function RegisterForm({
   nonce,
@@ -35,12 +36,18 @@ export function RegisterForm({
   });
 
   async function onSubmit(values: z.infer<typeof registerSchema>) {
-    await register({
-      createUser: values,
-      nonce,
-    });
-    form.clearErrors();
-    form.reset();
+    try {
+      await register({
+        createUser: values,
+        nonce,
+      });
+      form.clearErrors();
+      form.reset();
+    } catch (error) {
+      if (error instanceof Error && !error.message.includes("NEXT_REDIRECT")) {
+        toast.error(error.message);
+      }
+    }
   }
 
   return (

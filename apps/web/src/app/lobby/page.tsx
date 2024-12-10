@@ -5,9 +5,12 @@ import { Games } from "./_components/games";
 import { LobbyUpdates } from "./_components/lobby-updates";
 import { Users } from "./_components/users";
 import { getLobbyGames } from "./actions";
+import { getCurrentUser } from "@/server/db/context";
 
 export default async function Page() {
+  const currentUser = await getCurrentUser();
   const lobbyGames = await getLobbyGames();
+
   return (
     <div className="flex-1 flex-col space-y-6 p-4 md:flex">
       <LobbyUpdates />
@@ -20,7 +23,7 @@ export default async function Page() {
         </div>
         <GameForm />
       </div>
-      <Games lobbyGames={lobbyGames} />
+      <Games currentUser={currentUser} lobbyGames={lobbyGames} />
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>

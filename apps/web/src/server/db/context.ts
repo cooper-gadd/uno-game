@@ -2,13 +2,14 @@
 
 import { db } from "@/server/db";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export async function getCurrentUser() {
   const cookieStore = await cookies();
   const token = cookieStore.get("session");
 
   if (!token) {
-    throw new Error("No session token found");
+    redirect("/login");
   }
 
   const session = await db.query.sessions.findFirst({
@@ -19,7 +20,7 @@ export async function getCurrentUser() {
   });
 
   if (!session) {
-    throw new Error("No session found");
+    redirect("/login");
   }
 
   const user = await db.query.users.findFirst({

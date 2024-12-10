@@ -1,6 +1,7 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -8,30 +9,38 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { createPlayer, type getLobbyGames } from "../actions";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import { type getCurrentUser } from "@/server/db/context";
+import { createPlayer, type getLobbyGames } from "../actions";
 
 export function Games({
+  currentUser,
   lobbyGames,
 }: {
   lobbyGames: Awaited<ReturnType<typeof getLobbyGames>>;
+  currentUser: Awaited<ReturnType<typeof getCurrentUser>>;
 }) {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {lobbyGames.map((game) => {
         const isFull = game.players.length === game.maxPlayers;
+        const isPlayerInGame = game.players.some(
+          (player) => player.user.name === currentUser.name,
+        );
+        const isDisabled = isFull && !isPlayerInGame;
+
         return (
           <Card
             key={game.id}
             onClick={async () => {
-              await createPlayer({
-                gameId: game.id,
-              });
+              if (!isDisabled)
+                await createPlayer({
+                  gameId: game.id,
+                });
             }}
             className={cn(
               "transition-all",
-              !isFull
+              !isDisabled
                 ? "cursor-pointer hover:scale-105"
                 : "cursor-not-allowed opacity-50",
             )}
