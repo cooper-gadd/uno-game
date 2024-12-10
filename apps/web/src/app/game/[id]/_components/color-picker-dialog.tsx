@@ -9,19 +9,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-interface ColorPickerDialogProps {
-  open: boolean;
-  onColorSelectAction: (
-    color: "red" | "green" | "blue" | "yellow",
-  ) => Promise<void>;
-}
+type Color = "red" | "green" | "blue" | "yellow";
 
 export function ColorPickerDialog({
   open,
   onColorSelectAction,
-}: ColorPickerDialogProps) {
+  onOpenChange,
+}: {
+  open: boolean;
+  onColorSelectAction: (color: Color) => Promise<void>;
+  onOpenChange?: (open: boolean) => void;
+}) {
   return (
-    <Dialog open={open} modal>
+    <Dialog open={open} modal onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Select a color</DialogTitle>
