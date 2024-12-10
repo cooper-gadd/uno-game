@@ -11,8 +11,11 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 	log.Printf("[INIT] WebSocket server starting...")
 
-	http.HandleFunc("/chat", handlers.HandleLobbyConnections)
+	http.HandleFunc("/lobby-chat", handlers.HandleLobbyConnections)
 	go handlers.HandleLobbyMessages()
+
+	http.HandleFunc("/lobby-update", handlers.HandleLobbyUpdateConnections)
+	go handlers.HandleLobbyUpdates()
 
 	http.HandleFunc("/game-chat", handlers.HandleGameConnections)
 	go handlers.HandleGameMessages()

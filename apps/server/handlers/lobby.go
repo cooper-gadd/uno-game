@@ -12,10 +12,11 @@ import (
 )
 
 var (
-	lobbyClients   = make(map[*types.LobbyClient]bool)
-	lobbyMutex     sync.RWMutex
-	lobbyBroadcast = make(chan types.LobbyMessage)
-	upgrader       = websocket.Upgrader{
+	lobbyClients         = make(map[*types.LobbyClient]bool)
+	lobbyMutex           sync.RWMutex
+	lobbyBroadcast       = make(chan types.LobbyMessage)
+	lobbyUpdateBroadcast = make(chan types.LobbyUpdate)
+	upgrader             = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
@@ -72,6 +73,65 @@ func HandleLobbyMessages() {
 			err := client.Conn.WriteJSON(msg)
 			if err != nil {
 				utils.LogError("Broadcasting to lobby client", err, "")
+				client.Conn.Close()
+				lobbyMutex.RUnlock()
+				lobbyMutex.Lock()
+				delete(lobbyClients, client)
+				lobbyMutex.Unlock()
+				lobbyMutex.RLock()
+			}
+		}
+		lobbyMutex.RUnlock()
+	}
+}
+
+func HandleLobbyUpdateConnections(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		utils.LogError("Failed to upgrade lobby update connection", err, "")
+		return
+	}
+	defer ws.Close()
+
+	client := &types.LobbyClient{Conn: ws}
+
+	lobbyMutex.Lock()
+	lobbyClients[client] = true
+	clientCount := len(lobbyClients)
+	lobbyMutex.Unlock()
+
+	utils.LogClient("CONNECT", "Lobby Update", clientCount, "")
+
+	defer func() {
+		lobbyMutex.Lock()
+		delete(lobbyClients, client)
+		clientCount := len(lobbyClients)
+		lobbyMutex.Unlock()
+		utils.LogClient("DISCONNECT", "Lobby Update", clientCount, "")
+	}()
+
+	for {
+		var msg types.LobbyUpdate
+		err := ws.ReadJSON(&msg)
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseNormalClosure) {
+				utils.LogError("Unexpected lobby update connection close", err, "")
+			}
+			break
+		}
+		utils.LogMessage("LOBBY", "UPDATE RECEIVED", msg, "")
+		lobbyUpdateBroadcast <- msg
+	}
+}
+
+func HandleLobbyUpdates() {
+	for msg := range lobbyUpdateBroadcast {
+		utils.LogMessage("LOBBY", "UPDATING", msg, "")
+		lobbyMutex.RLock()
+		for client := range lobbyClients {
+			err := client.Conn.WriteJSON(msg)
+			if err != nil {
+				utils.LogError("Updating lobby client", err, "")
 				client.Conn.Close()
 				lobbyMutex.RUnlock()
 				lobbyMutex.Lock()

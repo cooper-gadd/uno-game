@@ -11,7 +11,7 @@ export function useChat() {
   const [chat, setChat] = useState<Chat[]>([]);
 
   useEffect(() => {
-    ws.current = new WebSocket("ws://localhost:8080/chat");
+    ws.current = new WebSocket("ws://localhost:8080/lobby-chat");
 
     ws.current.onopen = () => {
       console.log("WebSocket Connected");
