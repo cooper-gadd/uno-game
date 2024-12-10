@@ -1,6 +1,5 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { drawCard } from "../actions";
 
@@ -18,25 +17,31 @@ export function Draw({
   const isPlayerTurn = currentTurn === userId;
 
   return (
-    <Card
+    <svg
+      viewBox="0 0 96 144"
+      width="96"
+      height="144"
+      onClick={async () => {
+        if (!isPlayerTurn) return;
+        await drawCard({ gameId, playerId });
+      }}
       className={cn(
-        "h-36 w-24 transition-transform",
+        "rounded-xl border bg-card text-card-foreground shadow transition-transform",
         isPlayerTurn
           ? "cursor-pointer hover:scale-105"
           : "cursor-not-allowed opacity-50",
       )}
-      onClick={async () => {
-        if (!isPlayerTurn) return;
-
-        await drawCard({
-          gameId,
-          playerId,
-        });
-      }}
     >
-      <CardContent className="flex h-full items-center justify-center text-2xl font-bold text-white">
+      <text
+        x="48"
+        y="72"
+        textAnchor="middle"
+        dominantBaseline="middle"
+        className="text-2xl font-bold"
+        fill="currentColor"
+      >
         Draw
-      </CardContent>
-    </Card>
+      </text>
+    </svg>
   );
 }

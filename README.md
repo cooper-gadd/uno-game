@@ -1,9 +1,5 @@
 # Todo
 
-## **Game Board Design**
-
-- [ ] Create reusable SVG components for cards
-
 ## **Deployment**
 
 - [ ] Set up Virtual Machine (VM) instance
