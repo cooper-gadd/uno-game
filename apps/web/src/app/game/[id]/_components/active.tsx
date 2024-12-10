@@ -1,13 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentUser } from "@/server/db/context";
 import { redirect } from "next/navigation";
-import { GameChat } from "./game-chat";
-import { UnoCard } from "./uno-card";
-import { Players } from "./players";
-import { Draw } from "./draw";
-import { Play } from "./play";
-import { GamePoller } from "./game-poll";
 import { type getGame } from "../actions";
+import { Draw } from "./draw";
+import { GameChat } from "./game-chat";
+import { Play } from "./play";
+import { Players } from "./players";
+import { UnoCard } from "./uno-card";
 
 export async function Active({
   game,
@@ -30,7 +29,6 @@ export async function Active({
 
   return (
     <div className="flex-1 flex-col space-y-6 p-4 md:flex">
-      <GamePoller />
       <div className="flex flex-col items-start justify-between space-y-2 md:flex-row md:items-center">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">{game.name}</h2>

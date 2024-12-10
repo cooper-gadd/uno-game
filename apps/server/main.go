@@ -17,6 +17,9 @@ func main() {
 	http.HandleFunc("/game-chat", handlers.HandleGameConnections)
 	go handlers.HandleGameMessages()
 
+	http.HandleFunc("/game-update", handlers.HandleGameUpdateConnections)
+	go handlers.HandleGameUpdates()
+
 	log.Printf("[INIT] Server listening on :8080")
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
