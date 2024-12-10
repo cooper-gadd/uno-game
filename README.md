@@ -10,12 +10,12 @@
 
 ## **Deployment**
 
-- [ ] Set up the deployment environment on Solace or another server
-- [ ] Configure environment variables and production settings
-- [ ] Migrate the production database schema
-- [ ] Ensure secure and efficient database connections
-- [ ] Perform end-to-end testing in the deployed environment
-- [ ] Monitor application logs for errors or issues
+- [ ] Set up Virtual Machine (VM) instance
+- [ ] Clone project repository onto VM
+- [ ] Configure environment variables
+- [ ] Push database schema using Drizzle
+- [ ] Seed database with initial data
+- [ ] Set up reverse proxy configuration
 
 ## **Presentation Preparation**
 
