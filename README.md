@@ -8,11 +8,6 @@
 
 - [ ] Create reusable SVG components for cards
 
-## **Real-Time Game Updates**
-
-- [ ] Use WebSockets to synchronize game state between players
-- [ ] Send real-time updates for moves made and state changes
-
 ## **Deployment**
 
 - [ ] Set up the deployment environment on Solace or another server
