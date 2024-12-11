@@ -57,10 +57,10 @@ Register with credentials and nonce validation
 
 ### Real-Time Features
 
-- Instant game state updates
-- Live chat in lobby and games
-- Dynamic player joining/leaving
-- Immediate card play feedback
+- Real-time message handling:
+  - Lobby chat and updates
+  - Game chat and updates
+- Immediate game state feedback
 
 ## Tech Stack
 
