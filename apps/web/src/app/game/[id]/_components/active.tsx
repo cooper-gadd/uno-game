@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentUser } from "@/server/db/context";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
 import { type getGame } from "../actions";
 import { Draw } from "./draw";
 import { EndGame } from "./end-game";
@@ -80,9 +79,7 @@ export async function Active({
             <CardTitle>Game Chat</CardTitle>
           </CardHeader>
           <CardContent>
-            <Suspense fallback={<div>Loading chat...</div>}>
-              <GameChat gameId={game.id.toString()} />
-            </Suspense>
+            <GameChat gameId={game.id.toString()} />
           </CardContent>
         </Card>
         <Card>
@@ -90,9 +87,7 @@ export async function Active({
             <CardTitle>Players</CardTitle>
           </CardHeader>
           <CardContent>
-            <Suspense fallback={<div>Loading players...</div>}>
-              <Players gameId={game.id} currentTurn={game.currentTurn} />
-            </Suspense>
+            <Players gameId={game.id} currentTurn={game.currentTurn} />
           </CardContent>
         </Card>
       </div>

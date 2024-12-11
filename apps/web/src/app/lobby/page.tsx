@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentUser } from "@/server/db/context";
-import { Suspense } from "react";
 import { Chat } from "./_components/chat";
 import { GameForm } from "./_components/game-form";
 import { Games } from "./_components/games";
@@ -31,9 +30,7 @@ export default async function Page() {
             <CardTitle>Lobby Chat</CardTitle>
           </CardHeader>
           <CardContent>
-            <Suspense fallback={<div>Loading...</div>}>
-              <Chat />
-            </Suspense>
+            <Chat />
           </CardContent>
         </Card>
         <Card>
@@ -41,9 +38,7 @@ export default async function Page() {
             <CardTitle>Active Users</CardTitle>
           </CardHeader>
           <CardContent>
-            <Suspense fallback={<div>Loading...</div>}>
-              <Users />
-            </Suspense>
+            <Users />
           </CardContent>
         </Card>
       </div>
