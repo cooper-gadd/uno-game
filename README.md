@@ -86,7 +86,7 @@ Register with credentials and nonce validation
   - Game state updates
   - Player actions
 
-### System Architecture
+## System Architecture
 
 Game state is managed through Next.js Server Actions with WebSocket notifications for real-time updates.
 
@@ -135,15 +135,15 @@ Connection Types:
 - Server Actions: Game state management and mutations
 - Database: State persistence and queries
 
-### Database Schema
+## Database Schema
 
 Tables use the prefix `uno_` in PostgreSQL for namespace isolation. Relations are defined using Drizzle ORM with TypeScript for type safety.
 
-#### Core Tables
+### Core Tables
 
 Handles user authentication and session management. Provides the foundation for user interactions and security.
 
-##### Users
+#### Users
 
 Stores user accounts and authentication details
 
@@ -161,7 +161,7 @@ relations(users, ({ many }) => ({
 }))
 ```
 
-##### Sessions
+#### Sessions
 
 Tracks active user sessions
 
@@ -181,11 +181,11 @@ relations(sessions, ({ one }) => ({
 }))
 ```
 
-#### Game Management
+### Game Management
 
 Handles the core game logic, player turns, and game state transitions. Games progress through states (waiting → active → finished) while tracking player actions and card plays.
 
-##### Games
+#### Games
 
 Tracks active and completed game instances
 
@@ -224,7 +224,7 @@ relations(games, ({ one, many }) => ({
 }))
 ```
 
-##### Players
+#### Players
 
 Manages player participation and state
 
@@ -250,7 +250,7 @@ relations(players, ({ one, many }) => ({
 }))
 ```
 
-##### PlayerHands
+#### PlayerHands
 
 Links players to their current cards
 
@@ -273,11 +273,11 @@ relations(playerHands, ({ one }) => ({
 }))
 ```
 
-#### Card System
+### Card System
 
 Defines the complete UNO card deck with all card types, colors, and special actions. Manages the relationship between cards and players.
 
-##### Cards
+#### Cards
 
 Defines the UNO card deck
 
@@ -303,11 +303,11 @@ relations(cards, ({ many }) => ({
 }))
 ```
 
-#### Chat System
+### Chat System
 
 Provides real-time communication for both lobby and in-game chat. Supports global lobby messages and game-specific conversations.
 
-##### Chats
+#### Chats
 
 Stores chat messages
 
@@ -327,7 +327,7 @@ relations(chats, ({ one }) => ({
 }))
 ```
 
-##### GameChats
+#### GameChats
 
 Links chats to specific games
 
