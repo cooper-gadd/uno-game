@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { type getCurrentUser } from "@/server/db/context";
 import { redirect } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { type getGame } from "../actions";
 import { Draw } from "./draw";
 import { EndGame } from "./end-game";
@@ -20,6 +20,11 @@ export function Active({
   currentUser: Awaited<ReturnType<typeof getCurrentUser>>;
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const setIsPlayingAction = (value: boolean) => {
     setIsPlaying(value);
@@ -33,6 +38,10 @@ export function Active({
 
   if (!player) {
     redirect("/lobby");
+  }
+
+  if (!mounted) {
+    return null;
   }
 
   const playerCards = player.playerHands;
