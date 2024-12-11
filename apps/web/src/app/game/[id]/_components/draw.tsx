@@ -29,7 +29,7 @@ export function Draw({
     } finally {
       setTimeout(() => {
         setIsDrawing(false);
-      }, 1000); // 1 second
+      }, 1000);
     }
   };
 
@@ -44,6 +44,7 @@ export function Draw({
         isPlayerTurn && !isDrawing
           ? "cursor-pointer hover:scale-105"
           : "cursor-not-allowed opacity-50",
+        isDrawing && "animate-pulse",
       )}
     >
       <text
@@ -54,7 +55,7 @@ export function Draw({
         className="text-2xl font-bold"
         fill="currentColor"
       >
-        {isDrawing ? "Drawing..." : "Draw"}
+        Draw
       </text>
     </svg>
   );
