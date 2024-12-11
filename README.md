@@ -356,11 +356,9 @@ relations(gameChats, ({ one }) => ({
   - Server Actions for game state management
   - Automatic deployments from main branch
   - Edge network distribution
-- Render for Go server application
-  - WebSocket handling for:
-    - Game and lobby chat
-    - Game and lobby state updates
-  - Simple HTTP health checks
+- Render for Go WebSocket server
+  - Real-time chat messaging
+  - State change notifications
 - Neon for PostgreSQL database
   - Serverless PostgreSQL
   - Auto-scaling storage
