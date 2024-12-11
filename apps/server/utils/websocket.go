@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -10,6 +11,12 @@ import (
 var Upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		origin := r.Header.Get("Origin")
+
+		if origin == "" {
+			LogMessage("ORIGIN", "ACCEPTED", "No origin (server-side request)", "")
+			return true
+		}
+
 		allowedOrigins := []string{
 			"https://uno.cooper-gadd.io",
 			"http://localhost:3000",
@@ -23,7 +30,7 @@ var Upgrader = websocket.Upgrader{
 			}
 		}
 
-		LogMessage("ORIGIN", "REJECTED", origin, "")
+		LogMessage("ORIGIN", "REJECTED", fmt.Sprintf("Origin '%s' not in allowed list", origin), "")
 		return false
 	},
 }
