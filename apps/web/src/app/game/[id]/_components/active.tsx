@@ -1,9 +1,6 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { type getCurrentUser } from "@/server/db/context";
+import { getCurrentUser } from "@/server/db/context";
 import { redirect } from "next/navigation";
-import { useEffect, useState } from "react";
 import { type getGame } from "../actions";
 import { Draw } from "./draw";
 import { EndGame } from "./end-game";
@@ -12,23 +9,12 @@ import { Play } from "./play";
 import { Players } from "./players";
 import { UnoCard } from "./uno-card";
 
-export function Active({
+export async function Active({
   game,
-  currentUser,
 }: {
   game: Awaited<ReturnType<typeof getGame>>;
-  currentUser: Awaited<ReturnType<typeof getCurrentUser>>;
 }) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const setIsPlayingAction = (value: boolean) => {
-    setIsPlaying(value);
-  };
+  const currentUser = await getCurrentUser();
 
   if (!game.currentTurn) {
     throw new Error("Current turn not found");
@@ -38,10 +24,6 @@ export function Active({
 
   if (!player) {
     redirect("/lobby");
-  }
-
-  if (!mounted) {
-    return null;
   }
 
   const playerCards = player.playerHands;
@@ -70,7 +52,6 @@ export function Active({
                 playerId={player.id}
                 currentTurn={game.currentTurn}
                 userId={currentUser.id}
-                isPlaying={isPlaying}
               />
             </div>
             <div className="flex w-full flex-wrap justify-center gap-4">
@@ -85,8 +66,6 @@ export function Active({
                     playerId={player.id}
                     currentTurn={game.currentTurn!}
                     userId={currentUser.id}
-                    isPlaying={isPlaying}
-                    setIsPlayingAction={setIsPlayingAction}
                   />
                 </div>
               ))}
