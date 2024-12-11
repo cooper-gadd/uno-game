@@ -81,10 +81,8 @@ Register with credentials and nonce validation
 - Go 1.23
 - Gorilla WebSocket
 - Real-time message handling:
-  - Lobby chat
-  - Game chat
-  - Game state updates
-  - Player actions
+  - Lobby chat and updates
+  - Game chat and updates
 
 ## System Architecture
 
