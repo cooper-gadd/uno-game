@@ -1,6 +1,6 @@
 # UNO Online
 
-A real-tme multiplayer UNO game built with Next.js and Go.
+A real-time multiplayer UNO game built with Next.js and Go.
 
 ![UNO Online](images/uno-online.jpeg)
 Clean and simple UNO game with real-time updates
