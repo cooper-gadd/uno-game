@@ -2,12 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentUser } from "@/server/db/context";
 import { redirect } from "next/navigation";
 import { type getGame } from "../actions";
-import { Draw } from "./draw";
 import { EndGame } from "./end-game";
+import { GameBoard } from "./game-board";
 import { GameChat } from "./game-chat";
 import { Players } from "./players";
-import { UnoCard } from "./uno-card";
-import { Deck } from "./deck";
 
 export async function Active({
   game,
@@ -26,8 +24,6 @@ export async function Active({
     redirect("/lobby");
   }
 
-  const playerCards = player.playerHands;
-
   return (
     <div className="flex-1 flex-col space-y-6 p-4 md:flex">
       <div className="flex flex-col items-start justify-between space-y-2 md:flex-row md:items-center">
@@ -44,24 +40,7 @@ export async function Active({
           <CardTitle>Game Board</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
-            <div className="flex items-center justify-center gap-2">
-              <UnoCard card={game.card!} />
-              <Draw
-                gameId={game.id}
-                playerId={player.id}
-                currentTurn={game.currentTurn}
-                userId={currentUser.id}
-              />
-            </div>
-            <Deck
-              playerCards={playerCards}
-              gameId={game.id}
-              playerId={player.id}
-              currentTurn={game.currentTurn}
-              userId={currentUser.id}
-            />
-          </div>
+          <GameBoard game={game} currentUser={currentUser} />
         </CardContent>
       </Card>
       <div className="grid gap-4 md:grid-cols-2">
