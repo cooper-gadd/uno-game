@@ -187,31 +187,25 @@ export async function getLobbyUsers() {
 }
 
 async function notifyLobbyUpdate() {
-  return new Promise<void>((resolve) => {
-    try {
-      const ws = new WebSocket(
-        `${(env.WEBSOCKET_URL ?? "localhost:8080").includes("localhost") ? "ws://" : "wss://"}${env.WEBSOCKET_URL ?? "localhost:8080"}/lobby-update`,
-      );
+  const ws = new WebSocket(
+    `${(env.WEBSOCKET_URL ?? "localhost:8080").includes("localhost") ? "ws://" : "wss://"}${env.WEBSOCKET_URL ?? "localhost:8080"}/lobby-update`,
+  );
 
-      ws.onopen = () => {
-        ws.send(JSON.stringify({}));
-        ws.close();
-        resolve();
-      };
-
-      ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
-        ws.close();
-        resolve();
-      };
-
-      setTimeout(() => {
-        ws.close();
-        resolve();
-      }, 5000);
-    } catch (error) {
-      console.error("Failed to create WebSocket:", error);
+  return new Promise<void>((resolve, reject) => {
+    ws.onopen = () => {
+      ws.send(JSON.stringify({}));
+      ws.close();
       resolve();
-    }
+    };
+
+    ws.onerror = () => {
+      ws.close();
+      resolve();
+    };
+
+    setTimeout(() => {
+      ws.close();
+      reject(new Error("WebSocket connection timeout"));
+    }, 5000);
   });
 }
