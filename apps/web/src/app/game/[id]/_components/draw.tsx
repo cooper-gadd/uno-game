@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { drawCard } from "../actions";
+import { useState } from "react";
 
 export function Draw({
   gameId,
@@ -15,19 +16,32 @@ export function Draw({
   userId: number;
 }) {
   const isPlayerTurn = currentTurn === userId;
+  const [isDrawing, setIsDrawing] = useState(false);
+
+  const handleDraw = async () => {
+    if (!isPlayerTurn || isDrawing) return;
+
+    try {
+      setIsDrawing(true);
+      await drawCard({ gameId, playerId });
+    } catch (error) {
+      console.error("Error drawing card:", error);
+    } finally {
+      setTimeout(() => {
+        setIsDrawing(false);
+      }, 1000); // 1 second
+    }
+  };
 
   return (
     <svg
       viewBox="0 0 96 144"
       width="96"
       height="144"
-      onClick={async () => {
-        if (!isPlayerTurn) return;
-        await drawCard({ gameId, playerId });
-      }}
+      onClick={handleDraw}
       className={cn(
         "rounded-xl border bg-card text-card-foreground shadow transition-transform",
-        isPlayerTurn
+        isPlayerTurn && !isDrawing
           ? "cursor-pointer hover:scale-105"
           : "cursor-not-allowed opacity-50",
       )}
@@ -40,7 +54,7 @@ export function Draw({
         className="text-2xl font-bold"
         fill="currentColor"
       >
-        Draw
+        {isDrawing ? "Drawing..." : "Draw"}
       </text>
     </svg>
   );

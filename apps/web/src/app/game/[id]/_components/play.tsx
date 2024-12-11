@@ -74,8 +74,8 @@ export function Play({
       });
 
       setNeedsColor(false);
-    } catch (error) {
-      toast.error((error as Error).message);
+    } catch {
+      toast.error("Failed to play card");
     }
   };
 
