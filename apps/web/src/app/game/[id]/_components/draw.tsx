@@ -9,17 +9,19 @@ export function Draw({
   playerId,
   currentTurn,
   userId,
+  isPlaying,
 }: {
   gameId: number;
   playerId: number;
   currentTurn: number;
   userId: number;
+  isPlaying: boolean;
 }) {
   const isPlayerTurn = currentTurn === userId;
   const [isDrawing, setIsDrawing] = useState(false);
 
   const handleDraw = async () => {
-    if (!isPlayerTurn || isDrawing) return;
+    if (!isPlayerTurn || isDrawing || isPlaying) return;
 
     try {
       setIsDrawing(true);
@@ -41,7 +43,7 @@ export function Draw({
       onClick={handleDraw}
       className={cn(
         "rounded-xl border bg-card text-card-foreground shadow transition-transform",
-        isPlayerTurn && !isDrawing
+        isPlayerTurn && !isDrawing && !isPlaying
           ? "cursor-pointer hover:scale-105"
           : "cursor-not-allowed opacity-50",
         isDrawing && "animate-pulse border-green-500",

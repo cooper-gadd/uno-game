@@ -61,6 +61,7 @@ export function Active({
                 playerId={player.id}
                 currentTurn={game.currentTurn}
                 userId={currentUser.id}
+                isPlaying={isPlaying}
               />
             </div>
             <div className="flex w-full flex-wrap justify-center gap-4">
