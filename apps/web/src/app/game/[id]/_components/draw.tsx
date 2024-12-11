@@ -44,7 +44,6 @@ export function Draw({
         isPlayerTurn && !isPlaying
           ? "cursor-pointer hover:scale-105"
           : "cursor-not-allowed opacity-50",
-        isPlaying && "animate-pulse border-green-500",
       )}
     >
       <text
