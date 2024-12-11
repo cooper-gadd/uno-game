@@ -141,6 +141,8 @@ Tables use the prefix `uno_` in PostgreSQL for namespace isolation. Relations ar
 
 Handles user authentication and session management. Provides the foundation for user interactions and security.
 
+---
+
 #### Users
 
 Stores user accounts and authentication details
@@ -182,6 +184,8 @@ relations(sessions, ({ one }) => ({
 ### Game Management
 
 Handles the core game logic, player turns, and game state transitions. Games progress through states (waiting → active → finished) while tracking player actions and card plays.
+
+---
 
 #### Games
 
@@ -275,6 +279,8 @@ relations(playerHands, ({ one }) => ({
 
 Defines the complete UNO card deck with all card types, colors, and special actions. Manages the relationship between cards and players.
 
+---
+
 #### Cards
 
 Defines the UNO card deck
@@ -304,6 +310,8 @@ relations(cards, ({ many }) => ({
 ### Chat System
 
 Provides real-time communication for both lobby and in-game chat. Supports global lobby messages and game-specific conversations.
+
+---
 
 #### Chats
 
