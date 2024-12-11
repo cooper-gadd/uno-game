@@ -1,6 +1,9 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getCurrentUser } from "@/server/db/context";
+import { type getCurrentUser } from "@/server/db/context";
 import { redirect } from "next/navigation";
+import { useState } from "react";
 import { type getGame } from "../actions";
 import { Draw } from "./draw";
 import { EndGame } from "./end-game";
@@ -9,12 +12,18 @@ import { Play } from "./play";
 import { Players } from "./players";
 import { UnoCard } from "./uno-card";
 
-export async function Active({
+export function Active({
   game,
+  currentUser,
 }: {
   game: Awaited<ReturnType<typeof getGame>>;
+  currentUser: Awaited<ReturnType<typeof getCurrentUser>>;
 }) {
-  const currentUser = await getCurrentUser();
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const setIsPlayingAction = (value: boolean) => {
+    setIsPlaying(value);
+  };
 
   if (!game.currentTurn) {
     throw new Error("Current turn not found");
@@ -66,6 +75,8 @@ export async function Active({
                     playerId={player.id}
                     currentTurn={game.currentTurn!}
                     userId={currentUser.id}
+                    isPlaying={isPlaying}
+                    setIsPlayingAction={setIsPlayingAction}
                   />
                 </div>
               ))}

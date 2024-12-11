@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { type Card } from "@/server/db/schema";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { playCard } from "../actions";
 import { ColorPickerDialog } from "./color-picker-dialog";
@@ -18,16 +18,19 @@ export function Play({
   card,
   currentTurn,
   userId,
+  isPlaying,
+  setIsPlayingAction,
 }: {
   gameId: number;
   playerId: number;
   card: Card;
   currentTurn: number;
   userId: number;
+  isPlaying: boolean;
+  setIsPlayingAction: (value: boolean) => void;
 }) {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [needsColor, setNeedsColor] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
   const isPlayerTurn = currentTurn === userId;
 
   useEffect(() => {
@@ -67,7 +70,7 @@ export function Play({
         return;
       }
 
-      setIsPlaying(true);
+      setIsPlayingAction(true);
       await playCard({
         gameId,
         playerId,
@@ -80,7 +83,7 @@ export function Play({
       toast.error("Failed to play card");
     } finally {
       setTimeout(() => {
-        setIsPlaying(false);
+        setIsPlayingAction(false);
       }, 1000);
     }
   };

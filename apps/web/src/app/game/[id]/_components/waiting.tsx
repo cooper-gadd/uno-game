@@ -1,14 +1,16 @@
-import { getCurrentUser } from "@/server/db/context";
-import { StartGame } from "./start-game";
+"use client";
+
+import { type getCurrentUser } from "@/server/db/context";
 import { type getGame } from "../actions";
+import { StartGame } from "./start-game";
 
 export async function Waiting({
   game,
+  currentUser,
 }: {
   game: Awaited<ReturnType<typeof getGame>>;
+  currentUser: Awaited<ReturnType<typeof getCurrentUser>>;
 }) {
-  const currentUser = await getCurrentUser();
-
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="space-y-4 text-center">
