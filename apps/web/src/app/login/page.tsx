@@ -15,7 +15,7 @@ export default function Page() {
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>
-            Enter your email and password to play uno.
+            Enter your username and password to play uno.
           </CardDescription>
         </CardHeader>
         <CardContent>

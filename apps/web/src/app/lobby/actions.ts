@@ -44,8 +44,6 @@ export async function createGame(
   await createPlayer({
     gameId: game.insertedId,
   });
-
-  redirect(`/game/${game.insertedId}`);
 }
 
 export async function createPlayer(createPlayer: Pick<CreatePlayer, "gameId">) {
