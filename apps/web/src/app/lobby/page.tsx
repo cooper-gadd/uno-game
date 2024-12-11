@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getCurrentUser } from "@/server/db/context";
+import { Suspense } from "react";
 import { Chat } from "./_components/chat";
 import { GameForm } from "./_components/game-form";
 import { Games } from "./_components/games";
 import { LobbyUpdates } from "./_components/lobby-updates";
 import { Users } from "./_components/users";
 import { getLobbyGames } from "./actions";
-import { getCurrentUser } from "@/server/db/context";
 
 export default async function Page() {
   const currentUser = await getCurrentUser();
@@ -30,7 +31,9 @@ export default async function Page() {
             <CardTitle>Lobby Chat</CardTitle>
           </CardHeader>
           <CardContent>
-            <Chat />
+            <Suspense fallback={<div>Loading...</div>}>
+              <Chat />
+            </Suspense>
           </CardContent>
         </Card>
         <Card>
@@ -38,7 +41,9 @@ export default async function Page() {
             <CardTitle>Active Users</CardTitle>
           </CardHeader>
           <CardContent>
-            <Users />
+            <Suspense fallback={<div>Loading...</div>}>
+              <Users />
+            </Suspense>
           </CardContent>
         </Card>
       </div>
