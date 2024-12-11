@@ -18,12 +18,16 @@ export function Play({
   card,
   currentTurn,
   userId,
+  isPlaying,
+  setIsPlayingAction,
 }: {
   gameId: number;
   playerId: number;
   card: Card;
   currentTurn: number;
   userId: number;
+  isPlaying: boolean;
+  setIsPlayingAction: (value: boolean) => void;
 }) {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [needsColor, setNeedsColor] = useState(false);
@@ -54,7 +58,7 @@ export function Play({
   }, [card.id, isPlayerTurn]);
 
   const handlePlay = async (selectedColor?: Color) => {
-    if (!isPlayerTurn) return;
+    if (!isPlayerTurn || isPlaying) return;
 
     try {
       if (
@@ -66,6 +70,7 @@ export function Play({
         return;
       }
 
+      setIsPlayingAction(true);
       await playCard({
         gameId,
         playerId,
@@ -76,6 +81,10 @@ export function Play({
       setNeedsColor(false);
     } catch {
       toast.error("Failed to play card");
+    } finally {
+      setTimeout(() => {
+        setIsPlayingAction(false);
+      }, 1000);
     }
   };
 
@@ -91,9 +100,10 @@ export function Play({
         onClick={() => handlePlay()}
         className={cn(
           "transition-all",
-          isPlayerTurn
+          isPlayerTurn && !isPlaying
             ? "cursor-pointer hover:scale-105"
             : "cursor-not-allowed opacity-50",
+          isPlaying && "animate-pulse border-green-500",
         )}
       >
         <UnoCard card={card} />

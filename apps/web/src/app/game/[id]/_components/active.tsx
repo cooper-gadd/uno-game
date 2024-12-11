@@ -5,9 +5,9 @@ import { type getGame } from "../actions";
 import { Draw } from "./draw";
 import { EndGame } from "./end-game";
 import { GameChat } from "./game-chat";
-import { Play } from "./play";
 import { Players } from "./players";
 import { UnoCard } from "./uno-card";
+import { Deck } from "./deck";
 
 export async function Active({
   game,
@@ -54,22 +54,13 @@ export async function Active({
                 userId={currentUser.id}
               />
             </div>
-            <div className="flex w-full flex-wrap justify-center gap-4">
-              {playerCards.map(({ card }) => (
-                <div
-                  key={card.id}
-                  className="cursor-pointer transition-transform hover:scale-105"
-                >
-                  <Play
-                    card={card}
-                    gameId={game.id}
-                    playerId={player.id}
-                    currentTurn={game.currentTurn!}
-                    userId={currentUser.id}
-                  />
-                </div>
-              ))}
-            </div>
+            <Deck
+              playerCards={playerCards}
+              gameId={game.id}
+              playerId={player.id}
+              currentTurn={game.currentTurn}
+              userId={currentUser.id}
+            />
           </div>
         </CardContent>
       </Card>
