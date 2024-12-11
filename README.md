@@ -72,3 +72,9 @@ Register with credentials and nonce validation
   - Game chat
   - Game state updates
   - Player actions
+
+## Deployment
+
+- Vercel for Next.js web application
+- Render for Go server application
+- Neon for PostgreSQL database
