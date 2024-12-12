@@ -192,7 +192,7 @@ createTable("game", {
   topCardId: integer("top_card_id").references(() => cards.id).default(1),
   direction: gameDirection("direction").default("clockwise").notNull(),
   status: gameStatus("status").default("waiting").notNull(),
-  currentTurn: integer("current_turn"),
+  currentTurn: integer("current_turn"), //userId
 })
 
 relations(games, ({ one, many }) => ({
