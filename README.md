@@ -2,33 +2,6 @@
 
 A real-time multiplayer UNO game built with Next.js and Go.
 
-## Quick Navigation
-
-- [Features](#features)
-  - [Gameplay](#gameplay)
-  - [Lobby](#lobby)
-  - [Authentication](#authentication)
-  - [Game Features](#game-features)
-  - [Real-Time Features](#real-time-features)
-- [Tech Stack](#tech-stack)
-  - [Web](#web)
-  - [Server](#server)
-- [System Architecture](#system-architecture)
-- [Database Schema](#database-schema)
-  - [Core Tables](#core-tables)
-    - [Users](#users)
-    - [Sessions](#sessions)
-  - [Game Management](#game-management)
-    - [Games](#games)
-    - [Players](#players)
-    - [PlayerHands](#playerhands)
-  - [Card System](#card-system)
-    - [Cards](#cards)
-  - [Chat System](#chat-system)
-    - [Chats](#chats)
-    - [GameChats](#gamechats)
-- [Deployment](#deployment)
-
 ![UNO Online](images/uno-online.jpeg)
 Clean and simple UNO game with real-time updates
 
