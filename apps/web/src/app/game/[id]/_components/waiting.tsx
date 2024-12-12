@@ -18,7 +18,9 @@ export async function Waiting({
         <p className="text-xl text-muted-foreground">
           There are {game.players.length} players in this game
         </p>
-        {game.users.id === currentUser.id && <StartGame gameId={game.id} />}
+        {game.users.id === currentUser.id && game.players.length > 1 && (
+          <StartGame gameId={game.id} />
+        )}
       </div>
     </div>
   );
