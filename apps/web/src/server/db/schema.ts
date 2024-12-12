@@ -138,7 +138,7 @@ export const games = createTable("game", {
     .default(1),
   direction: gameDirection("direction").default("clockwise").notNull(),
   status: gameStatus("status").default("waiting").notNull(),
-  currentTurn: integer("current_turn"),
+  currentTurn: integer("current_turn"), //userId
 });
 
 export const gameRelations = relations(games, ({ one, many }) => ({
