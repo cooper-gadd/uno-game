@@ -9,12 +9,7 @@
     "dev": "bun run --bun dev:all",
     "dev:all": "concurrently \"bun run dev:web\" \"bun run dev:server\"",
     "dev:web": "cd apps/web && bun --bun run dev",
-    "dev:server": "cd apps/server && go run main.go",
-    "build": "bun run build:all",
-    "build:all": "concurrently \"bun run build:web\" \"bun run build:server\"",
-    "build:web": "cd apps/web && bun run build",
-    "build:server": "cd apps/server && go build main.go",
-    "clean": "rm -rf apps/web/.next apps/web/node_modules apps/server/bin"
+    "dev:server": "cd apps/server && go run main.go"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
