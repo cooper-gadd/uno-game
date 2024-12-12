@@ -10,16 +10,13 @@ const wildTypes = ["wild", "wild_draw_four"] as const;
 
 const deck: CreateCard[] = [];
 
-// Add number cards
 for (const color of colors) {
-  // Add one zero
   deck.push({
     color,
     type: "number",
     value: 0,
   });
 
-  // Add two of each 1-9
   for (const number of numbers.slice(1)) {
     deck.push({
       color,
@@ -34,7 +31,6 @@ for (const color of colors) {
   }
 }
 
-// Add action cards (two of each per color)
 for (const color of colors) {
   for (const actionType of actionTypes) {
     deck.push({
@@ -50,7 +46,6 @@ for (const color of colors) {
   }
 }
 
-// Add wild cards (4 of each type)
 for (const wildType of wildTypes) {
   for (let i = 0; i < 4; i++) {
     deck.push({
