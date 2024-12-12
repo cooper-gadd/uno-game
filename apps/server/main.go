@@ -17,7 +17,6 @@ func main() {
 		port = "8080"
 	}
 
-	// Update your handlers setup
 	http.HandleFunc("/lobby-chat", handlers.HandleLobbyConnections)
 	go handlers.HandleLobbyMessages()
 
